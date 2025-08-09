@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>عناوين محاضراتي</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container" id="login-container">
+    <h2>تسجيل الدخول</h2>
+    <form id="login-form">
+      <label>اسم الواعظ</label>
+      <input type="text" name="name" required />
+      <label>الرقم السري</label>
+      <input type="password" name="password" required />
+      <button type="submit">دخول</button>
+    </form>
+    <p>
+      ليس لديك حساب؟
+      <a href="#" id="show-register">إنشاء حساب</a>
+    </p>
+  </div>
+
+  <div class="container hidden" id="register-container">
+    <h2>إنشاء حساب جديد</h2>
+    <form id="register-form">
+      <label>اسم الواعظ</label>
+      <input type="text" name="name" required />
+      <label>الرقم السري</label>
+      <input type="password" name="password" required />
+      <button type="submit">تسجيل</button>
+    </form>
+    <p>
+      لديك حساب؟
+      <a href="#" id="show-login">تسجيل الدخول</a>
+    </p>
+  </div>
+
+  <div class="container hidden" id="main-container">
+    <h2>مرحبًا، <span id="username"></span></h2>
+    <button id="logout-btn">تسجيل خروج</button>
+
+    <h3>إضافة محاضرة جديدة</h3>
+    <form id="lecture-form">
+      <label>النوع</label>
+      <select name="type" required>
+        <option>حضور ورشة</option>
+        <option>حضور دورة</option>
+        <option>موعظة</option>
+        <option>درس</option>
+        <option>محاضرة</option>
+        <option>خطبة</option>
+      </select>
+
+      <label>العنوان</label>
+      <input type="text" name="title" required />
+
+      <label>الولاية</label>
+      <input type="text" name="state" required />
+
+      <label>المنطقة</label>
+      <input type="text" name="area" />
+
+      <label>موقع العمل</label>
+      <input type="text" name="location" />
+
+      <label>التاريخ</label>
+      <input type="date" name="date" required />
+
+      <label>الوقت</label>
+      <select name="time" required>
+        <option>بعد صلاة الفجر</option>
+        <option>صباحا</option>
+        <option>ظهرا</option>
+        <option>بعد صلاة العصر</option>
+        <option>مساءا</option>
+      </select>
+
+      <button type="submit">حفظ المحاضرة</button>
+    </form>
+
+    <h3>محاضراتي</h3>
+    <input type="text" id="search" placeholder="ابحث في المحاضرات..." />
+    <button id="search-btn">بحث</button>
+    <button id="print-btn">طباعة</button>
+
+    <div id="results"></div>
+  </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
