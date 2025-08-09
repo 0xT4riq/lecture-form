@@ -1,0 +1,16 @@
+{
+  "name": "تنظيم المحاضرات",
+  "short_name": "تنظيم المحاضرات",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "description": "نظام تسجيل ومتابعة محاضرات الواعظين",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
