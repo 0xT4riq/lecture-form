@@ -147,7 +147,20 @@ async function loadLectures(query = '') {
 
   renderLectures(lectures);
 }
+async function deleteLecture(id) {
+  if (!confirm("هل أنت متأكد أنك تريد حذف هذه المحاضرة؟")) return;
 
+  const res = await fetch(`/lectures/${id}`, {
+    method: 'DELETE'
+  });
+
+  if (res.ok) {
+    alert("تم حذف المحاضرة بنجاح");
+    loadLectures(); // إعادة التحميل
+  } else {
+    alert("حدث خطأ أثناء الحذف");
+  }
+}
 // عرض المحاضرات في الصفحة
 function renderLectures(lectures) {
   resultsDiv.innerHTML = '';
@@ -163,7 +176,14 @@ function renderLectures(lectures) {
       <b>${escapeHTML(l.title)}</b> (${escapeHTML(l.type)})<br>
       ${escapeHTML(l.date)} - ${escapeHTML(l.time)}<br>
       ${escapeHTML(l.state)} - ${escapeHTML(l.area)} - ${escapeHTML(l.location)}<br>
+      <button class="delete-btn" data-id="${l.id}">🗑 حذف</button>
     `;
+
+    // إضافة حدث زر الحذف
+    div.querySelector(".delete-btn").addEventListener("click", () => {
+      deleteLecture(l.id);
+    });
+
     resultsDiv.appendChild(div);
   });
 }
@@ -212,99 +232,112 @@ function setupArabicFont(doc) {
     }
 }
 async function exportLecturesToPDF() {
-  const res = await fetch(`/lectures?user_id=${currentUser.userId}`);
-  const lectures = await res.json();
+  try {
+    const res = await fetch(`/lectures?user_id=${currentUser.userId}`);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    const lectures = await res.json();
 
-  if (lectures.length === 0) {
-    alert("لا توجد محاضرات للطباعة.");
-    return;
-  }
+    if (lectures.length === 0) {
+      alert("لا توجد محاضرات للطباعة.");
+      return;
+    }
 
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  await setupArabicFont(doc);
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    // Assuming setupArabicFont is defined elsewhere and works correctly
+    await setupArabicFont(doc);
 
-  const rtl = true;
-  const align = rtl ? "right" : "left";
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 10;
+    const rowHeight = 10;
+    let y = 45;
 
-  const drawHeader = () => {
-    doc.setFontSize(18);
-    doc.text("📄 تقرير محاضرات الواعظ", pageWidth / 2, 15, { align: "center" });
+    const headers = ["النوع", "العنوان", "الولاية", "المنطقة", "الموقع", "التاريخ", "الوقت"];
+    const colWidths = [25, 35, 25, 25, 30, 25, 20];
+    const colX = colWidths.reduce((acc, width, i) => {
+      const lastX = i === 0 ? pageWidth - margin : acc[acc.length - 1];
+      acc.push(lastX - width);
+      return acc;
+    }, []);
 
-    doc.setFontSize(12);
-    doc.text(`الواعظ: ${currentUser.userName}`, pageWidth - margin, 25, { align: "right" });
+    const drawHeader = () => {
+      doc.setFontSize(18);
+      doc.text("📄 تقرير محاضرات الواعظ", pageWidth / 2, 15, { align: "center" });
+      doc.setFontSize(12);
+      doc.text(`الواعظ: ${currentUser.userName}`, pageWidth - margin, 25, { align: "right" });
+      const now = new Date();
+      const arabicDate = now.toLocaleDateString("ar-EG", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      doc.text(`تاريخ التقرير: ${arabicDate}`, pageWidth - margin, 32, { align: "right" });
+      doc.setLineWidth(0.5);
+      doc.line(margin, 35, pageWidth - margin, 35);
+    };
 
-    const now = new Date();
-    const arabicDate = now.toLocaleDateString("en-GB")
-    doc.text(`تاريخ التقرير: ${arabicDate}`, pageWidth - margin, 32, { align: "right" });
+    const drawTableHeader = () => {
+      doc.setFontSize(11);
+      headers.forEach((header, i) => {
+        const colStart = colX[i];
+        const colWidth = colWidths[i];
+        doc.rect(colStart, y, colWidth, rowHeight);
+        doc.text(header, colStart + colWidth - 2, y + 7, { align: "right" });
+      });
+      y += rowHeight;
+    };
 
-    // خط فاصل
-    doc.setLineWidth(0.5);
-    doc.line(margin, 35, pageWidth - margin, 35);
-  };
-
-  const headers = ["النوع", "العنوان", "الولاية", "المنطقة", "الموقع", "التاريخ", "الوقت"];
-  const colWidths = [25, 35, 25, 25, 30, 25, 20]; // المجموع = 185mm
-  const colX = [];
-  let x = pageWidth - margin;
-  for (let width of colWidths) {
-    colX.push(x);
-    x -= width;
-  }
-
-  let y = 45;
-  const rowHeight = 10;
-
-  const drawTableHeader = () => {
-    doc.setFontSize(11);
-    headers.forEach((header, i) => {
-      doc.rect(colX[i] - colWidths[i], y, colWidths[i], rowHeight);
-      doc.text(header, colX[i] - 2, y + 7, { align: "right" });
-    });
-    y += rowHeight;
-  };
-  const fitTextInCell = (text, colWidth) => {
-    let fontSize = 10; // حجم ابتدائي
-    doc.setFontSize(fontSize);
-    while (doc.getTextWidth(text) > colWidth - 4 && fontSize > 6) {
-      fontSize -= 0.5;
+    const fitTextInCell = (text, colWidth) => {
+      let fontSize = 10;
       doc.setFontSize(fontSize);
-    }
-    return fontSize;
-  };
-  drawHeader();
-  drawTableHeader();
+      while (doc.getTextWidth(text) > colWidth - 4 && fontSize > 6) {
+        fontSize -= 0.5;
+        doc.setFontSize(fontSize);
+      }
+      return fontSize;
+    };
 
-  lectures.forEach(lec => {
-    if (y + rowHeight > 280) {
-      doc.addPage();
-      y = 45;
-      drawHeader();
-      drawTableHeader();
-    }
+    drawHeader();
+    drawTableHeader();
 
-    const row = [
-      lec.type || "",
-      lec.title || "",
-      lec.state || "",
-      lec.area || "",
-      lec.location || "",
-      lec.date || "",
-      lec.time || "",
-    ];
+    lectures.forEach(lec => {
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = 45;
+        drawHeader();
+        drawTableHeader();
+      }
 
-    row.forEach((text, i) => {
-      doc.rect(colX[i] - colWidths[i], y, colWidths[i], rowHeight);
-      const fontSize = fitTextInCell(text, colWidths[i]);
-      doc.text(text, colX[i] - 2, y + 7, { align: "right" });
-      doc.setFontSize(10);
+      const row = [
+        lec.type || "",
+        lec.title || "",
+        lec.state || "",
+        lec.area || "",
+        lec.location || "",
+        lec.date || "",
+        lec.time || "",
+      ];
+
+      row.forEach((text, i) => {
+        const colStart = colX[i];
+        const colWidth = colWidths[i];
+        doc.rect(colStart, y, colWidth, rowHeight);
+        const fontSize = fitTextInCell(text, colWidth);
+        doc.setFontSize(fontSize);
+        doc.text(text, colStart + colWidth - 2, y + 7, { align: "right" });
+        doc.setFontSize(10);
+      });
+
+      y += rowHeight;
     });
 
-    y += rowHeight;
-  });
+    doc.save(`تقرير-محاضرات-${currentUser.userName}.pdf`);
 
-  doc.save(`تقرير-محاضرات-${currentUser.userName}.pdf`);
+  } catch (error) {
+    console.error("Failed to generate PDF:", error);
+    alert("حدث خطأ أثناء إنشاء التقرير. الرجاء المحاولة مرة أخرى.");
+  }
 }
 
 

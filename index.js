@@ -58,14 +58,49 @@ app.post('/save', (req, res) => {
   stmt.finalize();
 });
 
-// جلب محاضرات الواعظ
+// جلب محاضرات الواعظ مع دعم البحث
 app.get('/lectures', (req, res) => {
-  const user_id = req.query.user_id;
+  const { user_id, q } = req.query;
   if (!user_id) return res.status(400).json({ error: 'معرف الواعظ مطلوب' });
 
-  db.all('SELECT * FROM lectures WHERE user_id = ? ORDER BY date DESC', [user_id], (err, rows) => {
+  let sql = 'SELECT * FROM lectures WHERE user_id = ?';
+  const params = [user_id];
+
+  if (q && q.trim() !== '') {
+    sql += ` AND (
+      title LIKE ? OR 
+      type LIKE ? OR 
+      state LIKE ? OR 
+      area LIKE ? OR 
+      location LIKE ?
+    )`;
+    const searchTerm = `%${q}%`;
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+
+  sql += ' ORDER BY date DESC';
+
+  db.all(sql, params, (err, rows) => {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     res.json(rows);
+  });
+});
+
+// حذف محاضرة
+app.delete("/lectures/:id", (req, res) => {
+  const id = req.params.id;
+
+  db.run("DELETE FROM lectures WHERE id = ?", [id], function (err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: "فشل حذف المحاضرة" });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "المحاضرة غير موجودة" });
+    }
+
+    res.json({ success: true, message: "تم الحذف بنجاح" });
   });
 });
 

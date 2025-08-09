@@ -1,62 +1,104 @@
+/*
+ * Revised and improved style.css
+ */
+:root {
+  --primary-color: #4a76a8;
+  --secondary-color: #f0f4f8;
+  --text-color: #333;
+  --muted-text-color: #666;
+  --border-color: #ddd;
+  --container-bg: #fff;
+  --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f7fa;
+  background: var(--secondary-color);
   margin: 0;
-  padding: 20px;
+  padding: 2.5rem 1rem; /* Use rem for better scaling */
   direction: rtl;
+  color: var(--text-color);
+  line-height: 1.6;
 }
 
 .container {
-  max-width: 480px;
-  margin: 0 auto 30px;
-  background: white;
-  padding: 20px 25px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+  max-width: 520px; /* Slightly wider container */
+  margin: 0 auto 2rem; /* Consistent bottom margin */
+  background: var(--container-bg);
+  padding: 2rem;
+  border-radius: 12px; /* More rounded corners */
+  box-shadow: var(--shadow-strong);
+  transition: all 0.3s ease; /* Add transition for hover effects */
+}
+
+.container:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
 h2,
 h3 {
   text-align: center;
-  color: #333;
+  color: var(--text-color);
+  font-weight: 700;
+  margin-bottom: 1rem; /* More space below headers */
 }
 
 label {
   display: block;
-  margin: 15px 0 5px;
+  margin: 1.25rem 0 0.5rem;
   font-weight: 600;
-  color: #444;
+  color: var(--muted-text-color);
 }
 
 input,
 select {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #bbb;
-  font-size: 16px;
+  padding: 0.75rem 1rem; /* Increased padding */
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 118, 168, 0.2);
 }
 
 button {
-  margin-top: 20px;
+  margin-top: 1.5rem;
   width: 100%;
-  padding: 12px;
+  padding: 0.85rem;
   font-weight: 700;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 18px;
-  transition: background-color 0.3s ease;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #3b5c82;
+  transform: translateY(-2px);
+}
+
+button#logout-btn, #search-btn {
+  background-color: #6c757d;
+  font-size: 1rem;
+  padding: 0.75rem;
+}
+
+button#logout-btn:hover, #search-btn:hover {
+  background-color: #5a6268;
 }
 
 .hidden {
@@ -64,18 +106,18 @@ button:hover {
 }
 
 #results {
-  margin-top: 20px;
-  max-height: 300px;
+  margin-top: 1.5rem;
+  max-height: 350px; /* Taller results container */
   overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fafafa;
-  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--secondary-color);
+  padding: 1rem;
 }
 
 .result-item {
-  border-bottom: 1px solid #ddd;
-  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 0;
 }
 
 .result-item:last-child {
@@ -83,17 +125,49 @@ button:hover {
 }
 
 .result-item b {
-  font-size: 1.1em;
+  font-size: 1.15rem;
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
-@media (max-width: 480px) {
+/* For a more unified search bar */
+#search-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+#search {
+  flex-grow: 1;
+}
+
+#search-btn {
+  width: auto;
+  min-width: 80px;
+  margin-top: 0;
+}
+
+#print-btn {
+  margin-top: 1rem;
+  background-color: #17a2b8;
+}
+
+#print-btn:hover {
+  background-color: #138496;
+}
+
+@media (max-width: 576px) {
   body {
-    padding: 10px;
+    padding: 1rem;
   }
   .container {
-    padding: 15px;
+    padding: 1rem;
   }
-  button {
-    font-size: 16px;
+  #search-container {
+    flex-direction: column;
+    gap: 0;
+  }
+  #search-btn {
+    margin-top: 1rem;
   }
 }
