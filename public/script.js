@@ -69,6 +69,7 @@ function showMain(user) {
 
 // تسجيل الخروج
 logoutBtn.onclick = () => {
+  localStorage.removeItem('currentUser');
   currentUser = null;
   showLogin();
 };
@@ -98,23 +99,33 @@ registerForm.addEventListener('submit', async e => {
 // حدث نموذج تسجيل الدخول
 loginForm.addEventListener('submit', async e => {
   e.preventDefault();
+  
   const formData = new FormData(loginForm);
   const data = Object.fromEntries(formData.entries());
 
-  const res = await fetch('/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  const result = await res.json();
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
 
-  if (res.ok) {
-    showMain(result);
-    loginForm.reset();
-  } else {
-    alert(result.error || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+    const result = await res.json();
+
+    if (result.userId) {
+      currentUser = result;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ في التخزين المحلي
+      showMain(result); // عرض الصفحة الرئيسية
+      loginForm.reset();
+    } else {
+      alert(result.error || 'خطأ في تسجيل الدخول');
+    }
+  } catch (err) {
+    console.error('خطأ في الاتصال بالسيرفر:', err);
+    alert('حدث خطأ، حاول لاحقاً');
   }
 });
+
 
 // حدث حفظ المحاضرة
 lectureForm.addEventListener('submit', async e => {
@@ -487,6 +498,13 @@ document.addEventListener('DOMContentLoaded', () => {
         customTypeInput.required = false;
       }
     });
+  }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const storedUser = localStorage.getItem('currentUser');
+  if (storedUser) {
+    currentUser = JSON.parse(storedUser);
+    showMain(currentUser); // عرض الصفحة الرئيسية
   }
 });
 
