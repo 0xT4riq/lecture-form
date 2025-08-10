@@ -123,28 +123,36 @@ lectureForm.addEventListener('submit', async e => {
   const data = Object.fromEntries(formData.entries());
   data.user_id = currentUser.userId;
 
-  const res = await fetch('/save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-
-  const result = await res.json();
-
-  if (res.ok) {
-    alert('تم حفظ المحاضرة');
-    lectureForm.reset();
-    loadLectures();
+  if (lectureForm.dataset.editId) {
+    // تعديل
+    const id = lectureForm.dataset.editId;
+    await fetch(`/lectures/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    delete lectureForm.dataset.editId; // نحذف ID التعديل
+    lectureForm.querySelector("button[type='submit']").textContent = "حفظ المحاضرة";
   } else {
-    alert(result.error || 'حدث خطأ أثناء الحفظ');
+    // إضافة جديدة
+    await fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, user_id: currentUser.userId })
+    });
   }
+
+  lectureForm.reset();
+  loadLectures();
 });
 
 // جلب المحاضرات
-async function loadLectures(query = '') {
+async function loadLectures(query = '', dateFrom = '', dateTo = '') {
   if (!currentUser) return;
   let url = `/lectures?user_id=${currentUser.userId}`;
   if (query) url += `&q=${encodeURIComponent(query)}`;
+  if (dateFrom) url += `&date_from=${encodeURIComponent(dateFrom)}`;
+  if (dateTo) url += `&date_to=${encodeURIComponent(dateTo)}`;
 
   const res = await fetch(url);
   const lectures = await res.json();
@@ -165,6 +173,23 @@ async function deleteLecture(id) {
     alert("حدث خطأ أثناء الحذف");
   }
 }
+function editLecture(lecture) {
+  // هنا نفترض أن لديك نفس فورم الإضافة ونملأه بالبيانات القديمة
+  const form = document.getElementById("lecture-form");
+  form.type.value = lecture.type;
+  form.title.value = lecture.title;
+  form.state.value = lecture.state;
+  form.area.value = lecture.area;
+  form.location.value = lecture.location;
+  form.date.value = lecture.date;
+  form.time.value = lecture.time;
+
+  // نحفظ الـ ID في الفورم لتحديثه لاحقًا
+  form.dataset.editId = lecture.id;
+
+  // تغيير نص الزر
+  form.querySelector("button[type='submit']").textContent = "تحديث المحاضرة";
+}
 // عرض المحاضرات في الصفحة
 function renderLectures(lectures) {
   resultsDiv.innerHTML = '';
@@ -180,9 +205,14 @@ function renderLectures(lectures) {
       <b>${escapeHTML(l.title)}</b> (${escapeHTML(l.type)})<br>
       ${escapeHTML(l.date)} - ${escapeHTML(l.time)}<br>
       ${escapeHTML(l.state)} - ${escapeHTML(l.area)} - ${escapeHTML(l.location)}<br>
+      <button class="edit-btn" data-id="${l.id}">✏ تعديل</button>
       <button class="delete-btn" data-id="${l.id}">🗑 حذف</button>
     `;
 
+    // زر التعديل
+    div.querySelector(".edit-btn").addEventListener("click", () => {
+      editLecture(l);
+    })
     // إضافة حدث زر الحذف
     div.querySelector(".delete-btn").addEventListener("click", () => {
       deleteLecture(l.id);
@@ -247,7 +277,9 @@ updateForm.addEventListener("submit", async (e) => {
 // زر البحث
 searchBtn.onclick = () => {
   const q = searchInput.value.trim();
-  loadLectures(q);
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+  loadLectures(q,dateFrom, dateTo);
 };
 
 // زر الطباعة
@@ -396,4 +428,11 @@ document.getElementById('show-login').onclick = e => {
 // عند تحميل الصفحة، عرض شاشة تسجيل الدخول
 showLogin();
 
-//ركز على تحسين البحث حسب التواريخ والوقت
+window.addEventListener('load', () => {
+  document.getElementById('lecture-form').reset();
+  document.getElementById('update-form')?.reset();
+  document.getElementById('date-from').value = '';
+  document.getElementById('date-to').value = '';
+  document.getElementById('search').value = '';
+  loadLectures(); 
+});

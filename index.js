@@ -62,7 +62,7 @@ app.post('/save', (req, res) => {
 
 // جلب محاضرات الواعظ مع دعم البحث
 app.get('/lectures', (req, res) => {
-  const { user_id, q } = req.query;
+  const { user_id, q, date_from, date_to } = req.query;
   if (!user_id) return res.status(400).json({ error: 'معرف الواعظ مطلوب' });
 
   let sql = 'SELECT * FROM lectures WHERE user_id = ?';
@@ -79,7 +79,15 @@ app.get('/lectures', (req, res) => {
     const searchTerm = `%${q}%`;
     params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
   }
+  if (date_from) {
+    sql += ` AND date >= ?`;
+    params.push(date_from);
+  }
 
+  if (date_to) {
+    sql += ` AND date <= ?`;
+    params.push(date_to);
+  }
   sql += ' ORDER BY date DESC';
 
   db.all(sql, params, (err, rows) => {
@@ -105,6 +113,20 @@ app.delete("/lectures/:id", (req, res) => {
     res.json({ success: true, message: "تم الحذف بنجاح" });
   });
 });
+app.put('/lectures/:id', (req, res) => {
+  const { id } = req.params;
+  const { type, title, state, area, location, date, time } = req.body;
+
+  db.run(`
+    UPDATE lectures 
+    SET type = ?, title = ?, state = ?, area = ?, location = ?, date = ?, time = ?
+    WHERE id = ?
+  `, [type, title, state, area, location, date, time, id], function(err) {
+    if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
+    res.json({ message: 'تم تحديث المحاضرة بنجاح' });
+  });
+});
+
 app.get('/user/:id', (req, res) => {
     const id = req.params.id;
     db.get('SELECT id, name, email, state FROM users WHERE id = ?', [id], (err, row) => {
