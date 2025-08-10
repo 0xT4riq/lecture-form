@@ -22,10 +22,12 @@ const logoBase64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAA
 const loginContainer = document.getElementById('login-container');
 const registerContainer = document.getElementById('register-container');
 const mainContainer = document.getElementById('main-container');
+const editContainer = document.getElementById("edit-container");
 
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const lectureForm = document.getElementById('lecture-form');
+const updateForm = document.getElementById("update-form");
 
 const resultsDiv = document.getElementById('results');
 const searchInput = document.getElementById('search');
@@ -35,6 +37,8 @@ const logoutBtn = document.getElementById('logout-btn');
 
 const searchBtn = document.getElementById('search-btn');
 const printBtn = document.getElementById('print-btn');
+const editBtn = document.getElementById("edit-btn");
+const backBtn = document.getElementById("back-btn");
 
 let currentUser = null;
 const { jsPDF } = window.jspdf;
@@ -201,7 +205,45 @@ function escapeHTML(str) {
     })[m];
   });
 }
+// إظهار صفحة التحديث
+editBtn.addEventListener("click", async () => {
+    mainContainer.classList.add("hidden");
+    editContainer.classList.remove("hidden");
+    const res = await fetch(`/user/${currentUser.userId}`);
+    const user = await res.json();
 
+    // تعبئة الحقول
+    updateForm.name.value = user.name;
+    updateForm.email.value = user.email;
+    updateForm.state.value = user.state;
+    updateForm.password.value = ""; // كلمة السر فارغة (يعبّيها إذا أراد)
+});
+
+// الرجوع للصفحة الرئيسية
+backBtn.addEventListener("click", () => {
+    editContainer.classList.add("hidden");
+    mainContainer.classList.remove("hidden");
+});
+
+updateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(updateForm);
+    const data = Object.fromEntries(formData.entries());
+
+    const res = await fetch(`/user/${currentUser.userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    alert(result.message);
+
+    if (res.ok) {
+        editContainer.classList.add("hidden");
+        mainContainer.classList.remove("hidden");
+    }
+});
 // زر البحث
 searchBtn.onclick = () => {
   const q = searchInput.value.trim();
@@ -354,3 +396,4 @@ document.getElementById('show-login').onclick = e => {
 // عند تحميل الصفحة، عرض شاشة تسجيل الدخول
 showLogin();
 
+//ركز على تحسين البحث حسب التواريخ والوقت

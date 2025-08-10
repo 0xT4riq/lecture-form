@@ -35,6 +35,10 @@
     <form id="register-form">
       <label>اسم الواعظ</label>
       <input type="text" name="name" required />
+      <label>البريد الالكتروني</label>
+      <input type="text" name="email" required />
+      <label>الولاية</label>
+      <input type="text" name="state" required />
       <label>الرقم السري</label>
       <input type="password" name="password" required />
       <button type="submit">تسجيل</button>
@@ -48,7 +52,7 @@
   <div class="container hidden" id="main-container">
     <h2>مرحبًا، <span id="username"></span></h2>
     <button id="logout-btn">تسجيل خروج</button>
-
+    <button id="edit-btn">تحديث البيانات</button> 
     <h3>إضافة محاضرة جديدة</h3>
     <form id="lecture-form">
       <label>النوع</label>
@@ -95,7 +99,27 @@
 
     <div id="results"></div>
   </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <div class="container hidden" id="edit-container">
+    <h2>تحديث بيانات الحساب</h2>
+    <form id="update-form">
+        <label>الاسم</label>
+        <input type="text" name="name" required />
+
+        <label>البريد الإلكتروني</label>
+        <input type="email" name="email" required />
+
+        <label>الولاية</label>
+        <input type="text" name="state" required />
+
+        <label>كلمة المرور الجديدة</label>
+        <small style="color: gray;">اترك الخانة فارغة إذا لا تريد تغيير كلمة المرور</small>
+        <input type="password" name="password" />
+
+        <button type="submit">حفظ التغييرات</button>
+    </form>
+    <button id="back-btn">رجوع</button>
+</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="script.js"></script>
 

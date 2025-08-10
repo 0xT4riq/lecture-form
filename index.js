@@ -12,14 +12,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // تسجيل مستخدم جديد
 app.post('/register', (req, res) => {
-  const { name, password } = req.body;
-  if (!name || !password) return res.status(400).json({ error: 'اسم وكلمة المرور مطلوبان' });
+  const { name, email, state, password } = req.body;
+  if (!name || !password || !email || !state) return res.status(400).json({ error: 'يرجى إدخال جميع الخانات' });
 
-  const stmt = db.prepare('INSERT INTO users (name, password) VALUES (?, ?)');
-  stmt.run(name, password, function(err) {
+ const stmt = db.prepare(
+    'INSERT INTO users (name, email, state, password) VALUES (?, ?, ?, ?)'
+  );
+    stmt.run(name, email, state, password, function(err) {
     if (err) {
       if (err.message.includes('UNIQUE constraint')) {
-        return res.status(400).json({ error: 'اسم المستخدم موجود مسبقًا' });
+        return res.status(400).json({ error: 'اسم المستخدم أو البريد الإلكتروني موجود مسبقًا' });
       }
       return res.status(500).json({ error: 'حدث خطأ داخلي' });
     }
@@ -102,6 +104,37 @@ app.delete("/lectures/:id", (req, res) => {
 
     res.json({ success: true, message: "تم الحذف بنجاح" });
   });
+});
+app.get('/user/:id', (req, res) => {
+    const id = req.params.id;
+    db.get('SELECT id, name, email, state FROM users WHERE id = ?', [id], (err, row) => {
+        if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
+        if (!row) return res.status(404).json({ error: 'المستخدم غير موجود' });
+        res.json(row);
+    });
+});
+// تحديث بيانات المستخدم
+app.put('/user/:id', (req, res) => {
+    const id = req.params.id;
+    const { name, email, state, password } = req.body;
+
+    if (!name || !email || !state) {
+        return res.status(400).json({ error: 'يرجى إدخال جميع البيانات المطلوبة' });
+    }
+
+    let query, params;
+    if (password) {
+        query = 'UPDATE users SET name = ?, email = ?, state = ?, password = ? WHERE id = ?';
+        params = [name, email, state, password, id];
+    } else {
+        query = 'UPDATE users SET name = ?, email = ?, state = ? WHERE id = ?';
+        params = [name, email, state, id];
+    }
+
+    db.run(query, params, function(err) {
+        if (err) return res.status(500).json({ error: 'حدث خطأ أثناء التحديث' });
+        res.json({ message: 'تم تحديث البيانات بنجاح' });
+    });
 });
 
 app.listen(PORT, () => {
