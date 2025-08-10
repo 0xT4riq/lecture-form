@@ -42,7 +42,7 @@ const backBtn = document.getElementById("back-btn");
 
 let currentUser = null;
 const { jsPDF } = window.jspdf;
-
+let currentLectures = []; // لتخزين آخر بيانات تم تحميلها
 // عرض تسجيل الدخول
 function showLogin() {
   loginContainer.classList.remove('hidden');
@@ -119,7 +119,14 @@ loginForm.addEventListener('submit', async e => {
 // حدث حفظ المحاضرة
 lectureForm.addEventListener('submit', async e => {
   e.preventDefault();
+  const typeSelect = document.getElementById('type-select');
+  const customTypeInput = document.getElementById('custom-type');
+
   const formData = new FormData(lectureForm);
+  if (typeSelect.value === 'other') {
+    formData.set('type', customTypeInput.value.trim());
+  }
+
   const data = Object.fromEntries(formData.entries());
   data.user_id = currentUser.userId;
 
@@ -143,6 +150,7 @@ lectureForm.addEventListener('submit', async e => {
   }
 
   lectureForm.reset();
+  customTypeInput.style.display = 'none'; // نخفي خانة "أخرى"
   loadLectures();
 });
 
@@ -156,7 +164,7 @@ async function loadLectures(query = '', dateFrom = '', dateTo = '') {
 
   const res = await fetch(url);
   const lectures = await res.json();
-
+  currentLectures = lectures; // خزن النتائج
   renderLectures(lectures);
 }
 async function deleteLecture(id) {
@@ -288,7 +296,11 @@ printBtn.onclick = () => {
         alert("يرجى تسجيل الدخول أولاً.");
         return;
     }
-    exportLecturesToPDF();
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    exportLecturesToPDF(currentLectures, dateFrom, dateTo);
+    console.log("📌 currentUser:", currentUser);
+
 };
 function toArabicIndicNumbers(str) {
   return str.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
@@ -305,21 +317,9 @@ function setupArabicFont(doc) {
         doc.setFont("helvetica"); // Fallback
     }
 }
-async function exportLecturesToPDF() {
+async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
   try {
-    const res = await fetch(`/lectures?user_id=${currentUser.userId}`);
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    const lectures = await res.json();
-
-    if (lectures.length === 0) {
-      alert("لا توجد محاضرات للطباعة.");
-      return;
-    }
-
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    // Assuming setupArabicFont is defined elsewhere and works correctly
     await setupArabicFont(doc);
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -338,19 +338,56 @@ async function exportLecturesToPDF() {
     const drawHeader = () => {
       doc.setFontSize(18);
       doc.text("📄 تقرير محاضرات الواعظ", pageWidth / 2, 15, { align: "center" });
+
       doc.setFontSize(12);
-      doc.text(`الواعظ: ${currentUser.userName}`, pageWidth - margin, 25, { align: "right" });
+      const userState = currentUser.userState && currentUser.userState.trim() !== '' ? currentUser.userState : 'غير محددة';
+      doc.text(`الاسم: ${currentUser.userName}`, pageWidth - margin, 25, { align: "right" });
+      doc.text(`الولاية: ${userState}`, pageWidth - margin, 32, { align: "right" });
+
       const now = new Date();
       const arabicDate = now.toLocaleDateString("ar-EG", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
-      doc.text(`تاريخ التقرير: ${arabicDate}`, pageWidth - margin, 32, { align: "right" });
-      doc.setLineWidth(0.5);
-      doc.line(margin, 35, pageWidth - margin, 35);
-    };
+      doc.text(`تاريخ الطباعة: ${arabicDate}`, pageWidth - margin, 39, { align: "right" });
 
+      // تقرير من تاريخ - إلى تاريخ (وسط الصفحة)
+      let reportRangeText = "تقرير المحاضرات";
+      if (dateFrom && dateTo) {
+        const fromFormatted = new Date(dateFrom).toLocaleDateString("ar-EG", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+        const toFormatted = new Date(dateTo).toLocaleDateString("ar-EG", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+        reportRangeText = `تقرير من ${fromFormatted} إلى ${toFormatted}`;
+      } else if (dateFrom) {
+        const fromFormatted = new Date(dateFrom).toLocaleDateString("ar-EG", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+        reportRangeText = `تقرير من ${fromFormatted} إلى الآن`;
+      } else if (dateTo) {
+        const toFormatted = new Date(dateTo).toLocaleDateString("ar-EG", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+        reportRangeText = `تقرير حتى ${toFormatted}`;
+      }
+      doc.setFontSize(14);
+      doc.text(reportRangeText, pageWidth / 2, 50, { align: "center" });
+
+      doc.setLineWidth(0.5);
+      doc.line(margin, 55, pageWidth - margin, 55);
+    };
+    y = 60;
     const drawTableHeader = () => {
       doc.setFontSize(11);
       headers.forEach((header, i) => {
@@ -378,7 +415,7 @@ async function exportLecturesToPDF() {
     lectures.forEach(lec => {
       if (y + rowHeight > 280) {
         doc.addPage();
-        y = 45;
+        y = 60;
         drawHeader();
         drawTableHeader();
       }
@@ -436,3 +473,20 @@ window.addEventListener('load', () => {
   document.getElementById('search').value = '';
   loadLectures(); 
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const typeSelect = document.getElementById('type-select');
+  const customTypeInput = document.getElementById('custom-type');
+
+  if (typeSelect && customTypeInput) {
+    typeSelect.addEventListener('change', function() {
+      if (this.value === 'other') {
+        customTypeInput.style.display = 'block';
+        customTypeInput.required = true;
+      } else {
+        customTypeInput.style.display = 'none';
+        customTypeInput.required = false;
+      }
+    });
+  }
+});
+

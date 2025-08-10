@@ -56,15 +56,16 @@
     <h3>إضافة محاضرة جديدة</h3>
     <form id="lecture-form">
       <label>النوع</label>
-      <select name="type" required>
+      <select id="type-select" name="type" required>
         <option>حضور ورشة</option>
         <option>حضور دورة</option>
         <option>موعظة</option>
         <option>درس</option>
         <option>محاضرة</option>
         <option>خطبة</option>
+        <option value="other">أخرى</option>
       </select>
-
+      <input type="text" id="custom-type" placeholder="اكتب النوع هنا" style="display:none;" />
       <label>العنوان</label>
       <input type="text" name="title" required />
 

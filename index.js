@@ -39,7 +39,7 @@ app.post('/login', (req, res) => {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     if (!row) return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور خاطئة' });
 
-    res.json({ message: 'تم تسجيل الدخول', userId: row.id, userName: row.name });
+    res.json({ message: 'تم تسجيل الدخول', userId: row.id, userName: row.name, userState: row.state });
   });
 });
 
