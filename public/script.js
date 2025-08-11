@@ -173,7 +173,10 @@ lectureForm.addEventListener('submit', async e => {
 
   const data = Object.fromEntries(formData.entries());
   data.user_id = currentUser.userId;
-
+  if (data.date) {
+    const hijriDate = moment(data.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+    data.hijriDate = hijriDate;
+  }
   if (lectureForm.dataset.editId) {
     // تعديل
     const id = lectureForm.dataset.editId;
@@ -185,6 +188,7 @@ lectureForm.addEventListener('submit', async e => {
     delete lectureForm.dataset.editId; // نحذف ID التعديل
     lectureForm.querySelector("button[type='submit']").textContent = "حفظ المحاضرة";
   } else {
+
     // إضافة جديدة
     await fetch("/save", {
       method: "POST",
@@ -236,7 +240,12 @@ function editLecture(lecture) {
   form.location.value = lecture.location;
   form.date.value = lecture.date;
   form.time.value = lecture.time;
-
+  if (lecture.date) {
+    const hijriDate = moment(lecture.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+    document.getElementById('hijriDate').value = hijriDate;
+  } else {
+    document.getElementById('hijriDate').value = '';
+  }
   // نحفظ الـ ID في الفورم لتحديثه لاحقًا
   form.dataset.editId = lecture.id;
 
@@ -639,4 +648,46 @@ document.addEventListener('DOMContentLoaded', () => {
     showLogin();
   }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const gDateInput = document.getElementById('gregorianDate');
+    const hDateInput = document.getElementById('hijriDate');
+
+    if (gDateInput && hDateInput) {
+        gDateInput.addEventListener('change', function() {
+            const gDate = this.value;
+            if (gDate) {
+                const hijriRaw = moment(gDate, 'YYYY-MM-DD').locale('ar-sa').format('iD-iMMMM-iYYYY');
+                const hijri = hijriRaw.replace(/i/g, '');
+                hDateInput.value = hijri;
+            } else {
+                hDateInput.value = '';
+            }
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+  const dateFromInput = document.getElementById('date-from');
+  const dateToInput = document.getElementById('date-to');
+  const hijriFromDiv = document.getElementById('hijri-from');
+  const hijriToDiv = document.getElementById('hijri-to');
+
+  function updateHijri(input, displayDiv) {
+    if (input.value) {
+      const hijriDate = moment(input.value, 'YYYY-MM-DD').locale('ar-sa').format('iD-iMMMM-iYYYY');
+      displayDiv.textContent = `التاريخ الهجري: ${hijriDate}`;
+    } else {
+      displayDiv.textContent = '';
+    }
+  }
+
+  dateFromInput.addEventListener('change', () => {
+    updateHijri(dateFromInput, hijriFromDiv);
+  });
+
+  dateToInput.addEventListener('change', () => {
+    updateHijri(dateToInput, hijriToDiv);
+  });
+});
+
+
 

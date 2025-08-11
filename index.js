@@ -63,15 +63,15 @@ app.post('/login', (req, res) => {
 
 // حفظ محاضرة
 app.post('/save', (req, res) => {
-  const { user_id, type, title, state, area, location, date, time } = req.body;
-  if (!user_id || !type || !title || !state || !area || !location || !date || !time) {
+  const { user_id, type, title, state, area, location, date, time, hijriDate } = req.body;
+  if (!user_id || !type || !title || !state || !area || !location || !date || !time || !hijriDate) {
     return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
   }
 
   const stmt = db.prepare(`INSERT INTO lectures
-    (user_id, type, title, state, area, location, date, time)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-  stmt.run(user_id, type, title, state, area, location, date, time, function(err) {
+    (user_id, type, title, state, area, location, date, time, hijri_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  stmt.run(user_id, type, title, state, area, location, date, time, hijriDate || null, function(err) {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     res.json({ message: 'تم حفظ المحاضرة', lectureId: this.lastID });
   });
@@ -134,13 +134,13 @@ app.delete("/lectures/:id", (req, res) => {
 });
 app.put('/lectures/:id', (req, res) => {
   const { id } = req.params;
-  const { type, title, state, area, location, date, time } = req.body;
+  const { type, title, state, area, location, date, time, hijriDate } = req.body;
 
   db.run(`
     UPDATE lectures 
-    SET type = ?, title = ?, state = ?, area = ?, location = ?, date = ?, time = ?
+    SET type = ?, title = ?, state = ?, area = ?, location = ?, date = ?, time = ?, hijri_date = ?
     WHERE id = ?
-  `, [type, title, state, area, location, date, time, id], function(err) {
+  `, [type, title, state, area, location, date, time, hijriDate, id], function(err) {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     res.json({ message: 'تم تحديث المحاضرة بنجاح' });
   });

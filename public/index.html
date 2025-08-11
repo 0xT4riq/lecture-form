@@ -122,8 +122,16 @@
       <label>موقع العمل</label>
       <input type="text" name="location" />
 
-      <label>التاريخ</label>
-      <input type="date" name="date" required />
+      <label>التاريخ الميلادي</label>
+      <input type="date" id="gregorianDate" name="date" required />
+
+      <label>التاريخ الهجري (يُعبأ تلقائياً)</label>
+      <input type="text" id="hijriDate" name="hijriDate" readonly />
+
+      <!-- مكتبات التحويل -->
+      <script src="/js/moment.js"></script>
+      <script src="/js/moment-hijri.js"></script>
+
 
       <label>الوقت</label>
       <select id="time-select" name="time" required>
@@ -143,9 +151,11 @@
     <h3>محاضراتي</h3>
     <label>من تاريخ:</label>
     <input type="date" id="date-from" />
+    <div id="hijri-from" style="color: gray; font-size: 0.9em; margin-bottom: 10px;"></div>
 
     <label>إلى تاريخ:</label>
     <input type="date" id="date-to" />
+    <div id="hijri-to" style="color: gray; font-size: 0.9em; margin-bottom: 10px;"></div>
 
     <label>ابحث في المحاضرات:</label>
     <input type="text" id="search" placeholder="ابحث عن اسم المسجد ، الولاية ،التوقيت ..." />
