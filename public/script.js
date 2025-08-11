@@ -23,7 +23,7 @@ const loginContainer = document.getElementById('login-container');
 const registerContainer = document.getElementById('register-container');
 const mainContainer = document.getElementById('main-container');
 const editContainer = document.getElementById("edit-container");
-
+const adminContainer = document.getElementById("admin-container");
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const lectureForm = document.getElementById('lecture-form');
@@ -48,6 +48,7 @@ function showLogin() {
   loginContainer.classList.remove('hidden');
   registerContainer.classList.add('hidden');
   mainContainer.classList.add('hidden');
+  adminContainer.classList.add('hidden');
 }
 
 // عرض تسجيل الحساب
@@ -55,8 +56,15 @@ function showRegister() {
   loginContainer.classList.add('hidden');
   registerContainer.classList.remove('hidden');
   mainContainer.classList.add('hidden');
+  adminContainer.classList.add('hidden');
 }
+function showAdminPanel(){
+  loginContainer.classList.add('hidden');
+  registerContainer.classList.add('hidden');
+  mainContainer.classList.add('hidden');
+  adminContainer.classList.remove('hidden');
 
+}
 // عرض الصفحة الرئيسية
 function showMain(user) {
   currentUser = user;
@@ -64,6 +72,7 @@ function showMain(user) {
   loginContainer.classList.add('hidden');
   registerContainer.classList.add('hidden');
   mainContainer.classList.remove('hidden');
+  adminContainer.classList.add('hidden');
   loadLectures();
 }
 
@@ -111,14 +120,17 @@ loginForm.addEventListener('submit', async e => {
     });
 
     const result = await res.json();
-
-    if (result.userId) {
-      currentUser = result;
-      localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ في التخزين المحلي
-      showMain(result); // عرض الصفحة الرئيسية
-      loginForm.reset();
-    } else {
-      alert(result.error || 'خطأ في تسجيل الدخول');
+    if(result.isAdmin) {
+      showAdminPanel(); // عرض لوحة التحكم للمشرف
+    }else{
+      if (result.userId) {
+        currentUser = result;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ في التخزين المحلي
+        showMain(result); // عرض الصفحة الرئيسية
+        loginForm.reset();
+      } else {
+        alert(result.error || 'خطأ في تسجيل الدخول');
+      }
     }
   } catch (err) {
     console.error('خطأ في الاتصال بالسيرفر:', err);
@@ -500,6 +512,35 @@ document.getElementById('send-reset').addEventListener('click', async () => {
   alert(data.message || 'تم إرسال رابط إعادة التعيين إذا كان البريد موجود.');
   document.getElementById('forgot-password-modal').style.display = 'none';
   showLogin(); // العودة لشاشة تسجيل الدخول
+});
+
+
+document.getElementById('downloadBackupBtn').addEventListener('click', () => {
+  window.location.href = '/admin/backup/download';
+});
+
+document.getElementById('uploadBackupBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('backupFileInput');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert('اختر ملف النسخة الاحتياطية أولاً');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('backup', file);
+
+  try {
+    const res = await fetch('/admin/backup/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById('adminMessage').textContent = data.message || data.error;
+  } catch (err) {
+    document.getElementById('adminMessage').textContent = 'حدث خطأ أثناء الرفع';
+    console.error(err);
+  }
 });
 
 

@@ -15,6 +15,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="admin-container" class="container">
+    <h2>لوحة تحكم الأدمن</h2>
+
+    <section>
+      <h3>تحميل نسخة احتياطية</h3>
+      <button id="downloadBackupBtn">تنزيل النسخة الاحتياطية</button>
+    </section>
+
+    <section>
+      <h3>رفع نسخة احتياطية</h3>
+      <input type="file" id="backupFileInput" accept=".db" />
+      <button id="uploadBackupBtn">رفع النسخة</button>
+    </section>
+
+    <p id="adminMessage"></p>
+  </div>
+
+
   <div class="container" id="login-container">
     <h2>تسجيل الدخول</h2>
     <form id="login-form">

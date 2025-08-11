@@ -4,11 +4,13 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
 const app = express();
 const PORT = 3000;
 require('dotenv').config();
-
-const db = new sqlite3.Database('lectures.db');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); 
+let db = new sqlite3.Database('lectures.db');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -42,9 +44,16 @@ app.post('/login', (req, res) => {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     if (!row) return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور خاطئة' });
 
-    res.json({ message: 'تم تسجيل الدخول', userId: row.id, userName: row.name, userState: row.state });
+    res.json({ 
+      message: 'تم تسجيل الدخول', 
+      userId: row.id, 
+      userName: row.name, 
+      userState: row.state,
+      isAdmin: row.isAdmin
+    });
   });
 });
+
 
 // حفظ محاضرة
 app.post('/save', (req, res) => {
@@ -259,7 +268,54 @@ app.post('/reset-password', (req, res) => {
     });
   });
 });
+app.get('/admin/backup/download', (req, res) => {
+  const dbPath = 'lectures.db';
 
+  fs.access(dbPath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ error: 'قاعدة البيانات غير موجودة' });
+    }
+    res.download(dbPath, 'backup-lectures.db', (err) => {
+      if (err) {
+        console.error('خطأ في تحميل النسخة الاحتياطية:', err);
+        res.status(500).json({ error: 'فشل في تحميل النسخة الاحتياطية' });
+      }
+    });
+  });
+});
+app.post('/admin/backup/upload', upload.single('backup'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'لم يتم اختيار ملف' });
+  }
+
+  const tempPath = req.file.path;
+  const targetPath = path.join(__dirname, 'lectures.db');
+
+  db.close((closeErr) => {
+    if (closeErr) {
+      console.error('خطأ عند إغلاق قاعدة البيانات:', closeErr);
+      return res.status(500).json({ error: 'فشل إغلاق قاعدة البيانات' });
+    }
+
+    // استبدال الملف
+    fs.rename(tempPath, targetPath, (err) => {
+      if (err) {
+        console.error('خطأ في استبدال النسخة الاحتياطية:', err);
+        return res.status(500).json({ error: 'فشل في استبدال النسخة الاحتياطية' });
+      }
+
+      // ثم أعد فتح قاعدة البيانات مجددًا
+      db = new sqlite3.Database('lectures.db', (openErr) => {
+        if (openErr) {
+          console.error('خطأ في إعادة فتح قاعدة البيانات:', openErr);
+          return res.status(500).json({ error: 'فشل إعادة فتح قاعدة البيانات' });
+        }
+
+        res.json({ message: 'تم رفع النسخة الاحتياطية بنجاح' });
+      });
+    });
+  });
+});
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
