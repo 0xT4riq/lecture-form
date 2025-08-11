@@ -404,8 +404,10 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
         month: 'long',
         day: 'numeric'
       });
-      doc.text(`تاريخ الطباعة: ${arabicDate}`, pageWidth - margin, 39, { align: "right" });
+      const arabicHijriDate = moment(now).locale('ar-sa').format('iD-iMMMM-iYYYY');
+      const arabicHijriDateIndic = toArabicIndicNumbers(arabicHijriDate);
 
+      doc.text(`تاريخ الطباعة: ${arabicDate} // ${arabicHijriDateIndic}`, pageWidth - margin, 39, { align: "right" });
       // تقرير من تاريخ - إلى تاريخ (وسط الصفحة)
       let reportRangeText = "تقرير المحاضرات";
       if (dateFrom && dateTo) {
@@ -419,29 +421,38 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
         month: 'long',
         day: 'numeric'
       });
-        reportRangeText = `تقرير من ${fromFormatted} إلى ${toFormatted}`;
+        const fromHijri = moment(dateFrom).locale('ar-sa').format('iD-iMMMM-iYYYY');
+        const fromHijriArb = toArabicIndicNumbers(fromHijri);
+        const toHijri = moment(dateTo).locale('ar-sa').format('iD-iMMMM-iYYYY');
+        const toHijriArb = toArabicIndicNumbers(toHijri);
+
+      reportRangeText = `تقرير من ${fromFormatted} إلى ${toFormatted}\n${fromHijriArb} إلى ${toHijriArb}`;
       } else if (dateFrom) {
         const fromFormatted = new Date(dateFrom).toLocaleDateString("ar-EG", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
-        reportRangeText = `تقرير من ${fromFormatted} إلى الآن`;
+      const fromHijri = moment(dateFrom).locale('ar-sa').format('iD-iMMMM-iYYYY');
+      const fromHijriIndic = toArabicIndicNumbers(fromHijri);
+      reportRangeText = `تقرير من ${fromFormatted}\n${fromHijriIndic} إلى الآن`;
       } else if (dateTo) {
         const toFormatted = new Date(dateTo).toLocaleDateString("ar-EG", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
-        reportRangeText = `تقرير حتى ${toFormatted}`;
+      const toHijri = moment(dateTo).locale('ar-sa').format('iD-iMMMM-iYYYY');
+      const toHijriIndic = toArabicIndicNumbers(toHijri);
+      reportRangeText = `تقرير حتى ${toFormatted}\n${toHijriIndic}`;
       }
       doc.setFontSize(14);
       doc.text(reportRangeText, pageWidth / 2, 50, { align: "center" });
 
       doc.setLineWidth(0.5);
-      doc.line(margin, 55, pageWidth - margin, 55);
+      doc.line(margin, 65, pageWidth - margin, 65);
     };
-    y = 60;
+    y = 70;
     const drawTableHeader = () => {
       doc.setFontSize(11);
       headers.forEach((header, i) => {
