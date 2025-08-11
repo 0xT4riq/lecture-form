@@ -120,17 +120,17 @@ loginForm.addEventListener('submit', async e => {
     });
 
     const result = await res.json();
-    if(result.isAdmin) {
-      showAdminPanel(); // عرض لوحة التحكم للمشرف
-    }else{
-      if (result.userId) {
-        currentUser = result;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ في التخزين المحلي
-        showMain(result); // عرض الصفحة الرئيسية
-        loginForm.reset();
+    if (result.userId) {
+      currentUser = result;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ كامل البيانات
+      if (result.isAdmin) {
+        showAdminPanel();
       } else {
-        alert(result.error || 'خطأ في تسجيل الدخول');
+        showMain(result);
       }
+      loginForm.reset();
+    } else {
+      alert(result.error || 'خطأ في تسجيل الدخول');
     }
   } catch (err) {
     console.error('خطأ في الاتصال بالسيرفر:', err);
@@ -592,9 +592,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const storedUser = localStorage.getItem('currentUser');
   if (storedUser) {
     currentUser = JSON.parse(storedUser);
-    showMain(currentUser); // عرض الصفحة الرئيسية
-  }else{
-    showLogin(); 
+    if (currentUser.isAdmin) {
+      showAdminPanel();
+    } else {
+      showMain(currentUser);
+    }
+  } else {
+    showLogin();
   }
 });
 
