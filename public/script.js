@@ -34,6 +34,8 @@ const searchInput = document.getElementById('search');
 
 const usernameSpan = document.getElementById('username');
 const logoutBtn = document.getElementById('logout-btn');
+const AdminlogoutBtn = document.getElementById('admin-logout-btn');
+
 
 const searchBtn = document.getElementById('search-btn');
 const printBtn = document.getElementById('print-btn');
@@ -78,6 +80,11 @@ function showMain(user) {
 
 // تسجيل الخروج
 logoutBtn.onclick = () => {
+  localStorage.removeItem('currentUser');
+  currentUser = null;
+  showLogin();
+};
+AdminlogoutBtn.onclick = () => {
   localStorage.removeItem('currentUser');
   currentUser = null;
   showLogin();
