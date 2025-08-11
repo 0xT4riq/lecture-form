@@ -186,7 +186,7 @@ app.post('/forgot-password', (req, res) => {
       (err) => {
         if (err) return res.status(500).json({ error: 'خطأ في حفظ البيانات' });
 
-        const resetLink = `http://localhost:3000/reset-password.html?token=${token}`;
+        const resetLink = `https://lecture-form.onrender.com/reset-password.html?token=${token}`;
 
         // إرسال الإيميل
         let transporter = nodemailer.createTransport({
