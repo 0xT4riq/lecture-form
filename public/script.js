@@ -133,9 +133,15 @@ lectureForm.addEventListener('submit', async e => {
   const typeSelect = document.getElementById('type-select');
   const customTypeInput = document.getElementById('custom-type');
 
+  const timeSelect = document.getElementById('time-select');
+  const customTimeInput = document.getElementById('custom-time');
+
   const formData = new FormData(lectureForm);
   if (typeSelect.value === 'other') {
     formData.set('type', customTypeInput.value.trim());
+  }
+  if (timeSelect.value === 'other') {
+    formData.set('time', customTimeInput.value.trim());
   }
 
   const data = Object.fromEntries(formData.entries());
@@ -162,6 +168,7 @@ lectureForm.addEventListener('submit', async e => {
 
   lectureForm.reset();
   customTypeInput.style.display = 'none'; // نخفي خانة "أخرى"
+  customTimeInput.style.display = 'none'; // نخفي خانة "أخرى"
   loadLectures();
 });
 
@@ -472,6 +479,30 @@ document.getElementById('show-login').onclick = e => {
   e.preventDefault();
   showLogin();
 };
+document.getElementById('forgot-password').addEventListener('click', () => {
+  document.getElementById('forgot-password-modal').style.display = 'block';
+});
+
+document.getElementById('send-reset').addEventListener('click', async () => {
+  const email = document.getElementById('reset-email').value.trim();
+  if (!email) {
+    alert("الرجاء إدخال البريد الإلكتروني");
+    return;
+  }
+
+  const res = await fetch('/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+  alert(data.message || 'تم إرسال رابط إعادة التعيين إذا كان البريد موجود.');
+  document.getElementById('forgot-password-modal').style.display = 'none';
+  showLogin(); // العودة لشاشة تسجيل الدخول
+});
+
+
 
 // عند تحميل الصفحة، عرض شاشة تسجيل الدخول
 showLogin();
@@ -501,10 +532,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 document.addEventListener('DOMContentLoaded', () => {
+  const timeSelect = document.getElementById('time-select');
+  const customTimeInput = document.getElementById('custom-time');
+
+  if (timeSelect && customTimeInput) {
+    timeSelect.addEventListener('change', function() {
+      if (this.value === 'other') {
+        customTimeInput.style.display = 'block';
+        customTimeInput.required = true;
+      } else {
+        customTimeInput.style.display = 'none';
+        customTimeInput.required = false;
+      }
+    });
+  }
+});
+document.addEventListener('DOMContentLoaded', () => {
   const storedUser = localStorage.getItem('currentUser');
   if (storedUser) {
     currentUser = JSON.parse(storedUser);
     showMain(currentUser); // عرض الصفحة الرئيسية
+  }else{
+    showLogin(); 
   }
 });
 
