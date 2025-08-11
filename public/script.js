@@ -82,12 +82,21 @@ logoutBtn.onclick = () => {
   currentUser = null;
   showLogin();
 };
-
+function trimFormData(form) {
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+  // قص المسافات لكل قيمة
+  for (let key in data) {
+    if (typeof data[key] === 'string') {
+      data[key] = data[key].trim();
+    }
+  }
+  return data;
+}
 // حدث نموذج التسجيل
 registerForm.addEventListener('submit', async e => {
   e.preventDefault();
-  const formData = new FormData(registerForm);
-  const data = Object.fromEntries(formData.entries());
+  const data = trimFormData(registerForm);
 
   const res = await fetch('/register', {
     method: 'POST',
@@ -109,8 +118,7 @@ registerForm.addEventListener('submit', async e => {
 loginForm.addEventListener('submit', async e => {
   e.preventDefault();
   
-  const formData = new FormData(loginForm);
-  const data = Object.fromEntries(formData.entries());
+  const data = trimFormData(loginForm);
 
   try {
     const res = await fetch('/login', {
@@ -543,6 +551,29 @@ document.getElementById('uploadBackupBtn').addEventListener('click', async () =>
   }
 });
 
+async function fetchUsers() {
+  try {
+    const res = await fetch('/admin/users');
+    const users = await res.json();
+    const tbody = document.querySelector('#usersTable tbody');
+    tbody.innerHTML = ''; // تفريغ الجدول
+    users.forEach(user => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.isAdmin ? '✔' : '✘'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('خطأ في جلب المستخدمين:', err);
+  }
+}
+
+// استدعاء عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', fetchUsers);
 
 
 // عند تحميل الصفحة، عرض شاشة تسجيل الدخول

@@ -17,6 +17,7 @@
 <body>
   <div id="admin-container" class="container">
     <h2>لوحة تحكم الأدمن</h2>
+    <button id="logout-btn">تسجيل خروج</button>
 
     <section>
       <h3>تحميل نسخة احتياطية</h3>
@@ -27,6 +28,20 @@
       <h3>رفع نسخة احتياطية</h3>
       <input type="file" id="backupFileInput" accept=".db" />
       <button id="uploadBackupBtn">رفع النسخة</button>
+    </section>
+    <section>
+      <h3>قائمة المستخدمين</h3>
+      <table border="1" id="usersTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>الاسم</th>
+            <th>البريد</th>
+            <th>أدمن؟</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
 
     <p id="adminMessage"></p>

@@ -17,9 +17,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // تسجيل مستخدم جديد
 app.post('/register', (req, res) => {
-  const { name, email, state, password } = req.body;
+  let { name, email, state, password } = req.body;
   if (!name || !password || !email || !state) return res.status(400).json({ error: 'يرجى إدخال جميع الخانات' });
 
+  name = name.trim();
+  email = email.trim();
+  state = state.trim();
+  password = password.trim();
  const stmt = db.prepare(
     'INSERT INTO users (name, email, state, password) VALUES (?, ?, ?, ?)'
   );
@@ -37,10 +41,12 @@ app.post('/register', (req, res) => {
 
 // تسجيل الدخول
 app.post('/login', (req, res) => {
-  const { name, password } = req.body;
+  let { name, password } = req.body;
   if (!name || !password) return res.status(400).json({ error: 'اسم وكلمة المرور مطلوبان' });
 
-  db.get('SELECT * FROM users WHERE name = ? AND password = ?', [name, password], (err, row) => {
+  name = name.trim();
+  password = password.trim();
+  db.get('SELECT * FROM users WHERE TRIM(name) = ? AND password = ?', [name, password], (err, row) => {
     if (err) return res.status(500).json({ error: 'حدث خطأ داخلي' });
     if (!row) return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور خاطئة' });
 
@@ -316,6 +322,15 @@ app.post('/admin/backup/upload', upload.single('backup'), (req, res) => {
     });
   });
 });
+app.get('/admin/users', (req, res) => {
+  db.all(`SELECT id, name, email, isAdmin FROM users`, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'خطأ في قاعدة البيانات' });
+    }
+    res.json(rows);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
