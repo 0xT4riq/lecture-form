@@ -11,13 +11,16 @@ export default async function handler(req, res) {
   if (!user_id || !type || !title || !state || !area || !location || !date || !time || !hijriDate) {
     return res.status(400).json({ success: false, message: 'جميع الحقول مطلوبة' });
   }
-
+  const userIdAsInt = parseInt(user_id, 10);
+  if (isNaN(userIdAsInt)) {
+    return res.status(400).json({ success: false, message: 'معرف المستخدم غير صالح.' });
+  }
   // Use the correct column name from your Supabase table for 'hijriDate'
   const { data, error } = await supabase
     .from('lectures')
     .insert([
       { 
-        user_id, 
+        user_id: userIdAsInt, 
         type, 
         title, 
         state, 
