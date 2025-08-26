@@ -105,7 +105,7 @@ registerForm.addEventListener('submit', async e => {
   e.preventDefault();
   const data = trimFormData(registerForm);
 
-  const res = await fetch('/register', {
+  const res = await fetch('/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -128,7 +128,7 @@ loginForm.addEventListener('submit', async e => {
   const data = trimFormData(loginForm);
 
   try {
-    const res = await fetch('/login', {
+    const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -180,7 +180,7 @@ lectureForm.addEventListener('submit', async e => {
   if (lectureForm.dataset.editId) {
     // تعديل
     const id = lectureForm.dataset.editId;
-    await fetch(`/lectures/${id}`, {
+    await fetch(`/api/lectures/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -190,7 +190,7 @@ lectureForm.addEventListener('submit', async e => {
   } else {
 
     // إضافة جديدة
-    await fetch("/save", {
+    await fetch("/api/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...data, user_id: currentUser.userId })
@@ -301,7 +301,7 @@ function escapeHTML(str) {
 editBtn.addEventListener("click", async () => {
     mainContainer.classList.add("hidden");
     editContainer.classList.remove("hidden");
-    const res = await fetch(`/user/${currentUser.userId}`);
+    const res = await fetch(`/api/user/${currentUser.userId}`);
     const user = await res.json();
 
     // تعبئة الحقول
@@ -322,7 +322,7 @@ updateForm.addEventListener("submit", async (e) => {
     const formData = new FormData(updateForm);
     const data = Object.fromEntries(formData.entries());
 
-    const res = await fetch(`/user/${currentUser.userId}`, {
+    const res = await fetch(`/api/user/${currentUser.userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -537,7 +537,7 @@ document.getElementById('send-reset').addEventListener('click', async () => {
     return;
   }
 
-  const res = await fetch('/forgot-password', {
+  const res = await fetch('/api/forgot-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })
@@ -580,7 +580,7 @@ document.getElementById('uploadBackupBtn').addEventListener('click', async () =>
 
 async function fetchUsers() {
   try {
-    const res = await fetch('/admin/users');
+    const res = await fetch('/api/admin/users');
     const users = await res.json();
     const tbody = document.querySelector('#usersTable tbody');
     tbody.innerHTML = ''; // تفريغ الجدول
