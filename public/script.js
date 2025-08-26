@@ -207,7 +207,7 @@ lectureForm.addEventListener('submit', async e => {
 // جلب المحاضرات
 async function loadLectures(query = '', dateFrom = '', dateTo = '') {
   if (!currentUser) return;
-  let url = `/lectures?user_id=${currentUser.userId}`;
+  let url = `/api/lectures?user_id=${currentUser.userId}`;
   if (query) url += `&q=${encodeURIComponent(query)}`;
   if (dateFrom) url += `&date_from=${encodeURIComponent(dateFrom)}`;
   if (dateTo) url += `&date_to=${encodeURIComponent(dateTo)}`;
