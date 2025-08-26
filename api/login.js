@@ -11,13 +11,15 @@ export default async function handler(req, res) {
   if (!name || !password) {
     return res.status(400).json({ success: false, message: 'اسم وكلمة المرور مطلوبان' });
   }
+    const trimmedName = name.trim();
+  const trimmedPassword = password.trim();
 
   // Find the user with the matching name and password
   const { data, error } = await supabase
     .from('users')
     .select('id, name, state, isAdmin')
-    .eq('name', name)
-    .eq('password', password)
+    .eq('name', trimmedName)
+    .eq('password', trimmedPassword)
     .single();
 
   if (error) {
