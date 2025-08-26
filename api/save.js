@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient.js';
 
 export default async function handler(req, res) {
+      console.log('Received payload:', req.body);
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -11,7 +12,7 @@ export default async function handler(req, res) {
   if (!user_id || !type || !title || !state || !area || !location || !date || !time || !hijriDate) {
     return res.status(400).json({ success: false, message: 'جميع الحقول مطلوبة' });
   }
-  const userIdAsInt = parseInt(user_id, 10);
+  const userIdAsInt = parseInt(user_id, 8);
   if (isNaN(userIdAsInt)) {
     return res.status(400).json({ success: false, message: 'معرف المستخدم غير صالح.' });
   }
