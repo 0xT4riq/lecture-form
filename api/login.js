@@ -16,8 +16,8 @@ export default async function handler(req, res) {
   const { data, error } = await supabase
     .from('users')
     .select('id, name, state, isAdmin')
-    .eq('name', name.trim())
-    .eq('password', password.trim())
+    .eq('name', name)
+    .eq('password', password)
     .single();
 
   if (error) {
