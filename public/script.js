@@ -220,7 +220,7 @@ async function loadLectures(query = '', dateFrom = '', dateTo = '') {
 async function deleteLecture(id) {
   if (!confirm("هل أنت متأكد أنك تريد حذف هذه المحاضرة؟")) return;
 
-  const res = await fetch(`/lectures/${id}`, {
+  const res = await fetch(`/api/lectures/${id}`, {
     method: 'DELETE'
   });
 
