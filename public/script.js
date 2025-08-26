@@ -135,9 +135,9 @@ loginForm.addEventListener('submit', async e => {
     });
 
     const result = await res.json();
-    if (result.userId) {
+    if (result.success) { // Check if the operation was successful
       currentUser = result;
-      localStorage.setItem('currentUser', JSON.stringify(currentUser)); // حفظ كامل البيانات
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
       if (result.isAdmin) {
         showAdminPanel();
       } else {
@@ -145,7 +145,8 @@ loginForm.addEventListener('submit', async e => {
       }
       loginForm.reset();
     } else {
-      alert(result.error || 'خطأ في تسجيل الدخول');
+      // Display the specific error message from the server
+      alert(result.message || 'خطأ في تسجيل الدخول');
     }
   } catch (err) {
     console.error('خطأ في الاتصال بالسيرفر:', err);
