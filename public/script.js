@@ -305,11 +305,18 @@ editBtn.addEventListener("click", async () => {
     const res = await fetch(`/api/user/${currentUser.userId}`);
     const user = await res.json();
 
-    // تعبئة الحقول
+  if (result.success) {
+    const user = result.user; // Get the user data from the 'user' property
+    
+    // Fill the fields with the correct user data
     updateForm.name.value = user.name;
     updateForm.email.value = user.email;
     updateForm.state.value = user.state;
-    updateForm.password.value = ""; // كلمة السر فارغة (يعبّيها إذا أراد)
+    updateForm.password.value = ""; // Keep password field empty
+  } else {
+    // Handle the error if the request was not successful
+    alert(result.message || 'فشل تحميل بيانات المستخدم');
+  }// كلمة السر فارغة (يعبّيها إذا أراد)
 });
 
 // الرجوع للصفحة الرئيسية
