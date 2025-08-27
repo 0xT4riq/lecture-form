@@ -303,7 +303,7 @@ editBtn.addEventListener("click", async () => {
     mainContainer.classList.add("hidden");
     editContainer.classList.remove("hidden");
     const res = await fetch(`/api/user/${currentUser.userId}`);
-    const user = await res.json();
+    const result = await res.json();
 
   if (result.success) {
     const user = result.user; // Get the user data from the 'user' property
