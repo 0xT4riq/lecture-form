@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   }
 
   // Create the password reset link
-  const resetLink = `https://lecture-form.onrender.com/reset-password.html?token=${token}`;
+  const resetLink = `https://lecture-form.vercel.app/reset-password.html?token=${token}`;
   
   // Set up Nodemailer transporter
   const transporter = nodemailer.createTransport({
