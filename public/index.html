@@ -101,12 +101,12 @@
     <form id="lecture-form">
       <label>النوع</label>
       <select id="type-select" name="type" required>
-        <option>حضور ورشة</option>
-        <option>حضور دورة</option>
+        <option>محاضرة</option>
         <option>موعظة</option>
         <option>درس</option>
-        <option>محاضرة</option>
         <option>خطبة</option>
+        <option>حضور ورشة</option>
+        <option>حضور دورة</option>
         <option value="other">أخرى</option>
       </select>
       <input type="text" id="custom-type" placeholder="اكتب النوع هنا" style="display:none;" />
@@ -135,6 +135,7 @@
 
       <label>الوقت</label>
       <select id="time-select" name="time" required>
+        <option>بعد صلاة المغرب</option>
         <option>بعد صلاة الفجر</option>
         <option>صباحا</option>
         <option>ظهرا</option>
@@ -145,7 +146,7 @@
       <input type="text" id="custom-time" placeholder="اكتب التوقيت هنا" style="display:none;" />
 
 
-      <button type="submit">حفظ المحاضرة</button>
+      <button type="submit">حفظ</button>
     </form>
     <hr />
     <h3>محاضراتي</h3>

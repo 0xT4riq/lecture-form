@@ -188,6 +188,7 @@ lectureForm.addEventListener('submit', async e => {
     });
     delete lectureForm.dataset.editId; // نحذف ID التعديل
     lectureForm.querySelector("button[type='submit']").textContent = "حفظ المحاضرة";
+    alertMessage = "تم تعديل المحاضرة بنجاح.";
   } else {
 
     // إضافة جديدة
@@ -196,8 +197,9 @@ lectureForm.addEventListener('submit', async e => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...data, user_id: currentUser.userId })
     });
+    alertMessage = "تم إضافة المحاضرة بنجاح.";
   }
-
+  window.alert(alertMessage);
   lectureForm.reset();
   customTypeInput.style.display = 'none'; // نخفي خانة "أخرى"
   customTimeInput.style.display = 'none'; // نخفي خانة "أخرى"
