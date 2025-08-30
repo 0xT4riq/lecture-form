@@ -386,10 +386,12 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     await setupArabicFont(doc);
 
+    lectures.sort((a, b) => new Date(a.date) - new Date(b.date));
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 10;
     const rowHeight = 10;
-    let y = 45;
+    let y = 0; //before 45
 
     const headers = ["النوع", "العنوان", "الولاية", "المنطقة", "الموقع", "التاريخ", "الوقت"];
     const colWidths = [25, 35, 25, 25, 30, 25, 20];
@@ -462,8 +464,8 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
       doc.setLineWidth(0.5);
       doc.line(margin, 65, pageWidth - margin, 65);
     };
-    y = 70;
     const drawTableHeader = () => {
+      y = 70;
       doc.setFontSize(11);
       headers.forEach((header, i) => {
         const colStart = colX[i];
@@ -488,7 +490,7 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
     drawTableHeader();
 
     lectures.forEach(lec => {
-      if (y + rowHeight > 280) {
+      if (y + rowHeight > doc.internal.pageSize.getHeight() - margin) {
         doc.addPage();
         y = 60;
         drawHeader();
