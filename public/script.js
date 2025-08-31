@@ -393,8 +393,11 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
     const rowHeight = 10;
     let y = 0; //before 45
 
-    const headers = ["النوع", "العنوان", "الولاية", "المنطقة", "الموقع", "التاريخ", "الوقت"];
-    const colWidths = [25, 35, 25, 25, 30, 25, 20];
+    // Add "الرقم" (the number) as the first header
+    const headers = ["الرقم", "النوع", "العنوان", "الولاية", "المنطقة", "الموقع", "التاريخ", "الوقت"];
+
+    // Add a corresponding width for the number column
+    const colWidths = [10, 25, 35, 25, 25, 30, 25, 20];
     const colX = colWidths.reduce((acc, width, i) => {
       const lastX = i === 0 ? pageWidth - margin : acc[acc.length - 1];
       acc.push(lastX - width);
@@ -488,8 +491,10 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
 
     drawHeader();
     drawTableHeader();
+    for (let i = 0; i < lectures.length; i++) {
+      const lec = lectures[i];
+      const lectureNumber = i + 1;
 
-    lectures.forEach(lec => {
       if (y + rowHeight > doc.internal.pageSize.getHeight() - margin) {
         doc.addPage();
         y = 60;
@@ -498,6 +503,7 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
       }
 
       const row = [
+        toArabicIndicNumbers(String(lectureNumber)),
         lec.type || "",
         lec.title || "",
         lec.state || "",
@@ -518,7 +524,7 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
       });
 
       y += rowHeight;
-    });
+    };
 
     doc.save(`تقرير-محاضرات-${currentUser.userName}.pdf`);
 
