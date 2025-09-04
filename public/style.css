@@ -155,6 +155,66 @@ button#logout-btn:hover, #search-btn:hover {
 #print-btn:hover {
   background-color: #138496;
 }
+        #stats-container {
+            padding: 30px;
+        }
+
+        #location-stats-list {
+            list-style: none; /* Remove default bullet points */
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        #location-stats-list li {
+            background-color: #ecf0f1;
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: flex; /* Use flexbox for alignment */
+            justify-content: space-between; /* Space between location and count */
+            align-items: center;
+            font-size: 1.1em;
+            color: #2c3e50;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            border-right: 5px solid #3498db; /* A left border for visual appeal (will appear on the right due to RTL) */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        #location-stats-list li:hover {
+            background-color: #e0e6e7;
+            transform: translateX(-5px); /* Slide slightly on hover */
+        }
+
+        .location-name {
+            font-weight: bold;
+            flex-grow: 1; /* Allows it to take up available space */
+            text-align: right;
+        }
+
+        .lecture-count {
+            color: #27ae60; /* A pleasant green for counts */
+            font-weight: bold;
+            font-size: 1em;
+            min-width: 80px; /* Ensure space for the count */
+            text-align: left; /* Align count to the left for RTL */
+        }
+
+        #back-from-stats-btn {
+            background-color: #7f8c8d; /* A different color for the back button */
+            margin-top: 25px;
+            float: left; /* Float to the left for RTL */
+        }
+
+        #back-from-stats-btn:hover {
+            background-color: #6a7678;
+        }
+
+        /* Clearfix for floats */
+        .container::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
 
 @media (max-width: 576px) {
   body {
