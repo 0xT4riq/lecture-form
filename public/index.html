@@ -97,6 +97,7 @@
     <h2>مرحبًا، <span id="username"></span></h2>
     <button id="logout-btn">تسجيل خروج</button>
     <button id="edit-btn">تحديث البيانات</button> 
+    <button id="stats-btn" >إحصائيات</button>
     <h3>إضافة محاضرة جديدة</h3>
     <form id="lecture-form">
       <label>النوع</label>
@@ -185,6 +186,15 @@
     </form>
     <button id="back-btn">رجوع</button>
 </div>
+
+<div class="container hidden" id="stats-container">
+    <h2>إحصائيات المحاضرات</h2>
+    <button id="back-from-stats-btn">رجوع</button>
+    <ul id="location-stats-list">
+        </ul>
+</div>
+
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="script.js"></script>

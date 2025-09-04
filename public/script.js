@@ -42,6 +42,11 @@ const printBtn = document.getElementById('print-btn');
 const editBtn = document.getElementById("edit-btn");
 const backBtn = document.getElementById("back-btn");
 
+const statsBtn = document.getElementById('stats-btn');
+const backFromStatsBtn = document.getElementById('back-from-stats-btn');
+const statsContainer = document.getElementById('stats-container');
+const locationStatsList = document.getElementById('location-stats-list');
+
 let currentUser = null;
 const { jsPDF } = window.jspdf;
 let currentLectures = []; // لتخزين آخر بيانات تم تحميلها
@@ -77,6 +82,17 @@ function showMain(user) {
   adminContainer.classList.add('hidden');
   loadLectures();
 }
+// Add the event listeners for the new buttons
+statsBtn.addEventListener('click', () => {
+    mainContainer.classList.add('hidden');
+    statsContainer.classList.remove('hidden');
+    displayLectureStatistics();
+});
+
+backFromStatsBtn.addEventListener('click', () => {
+    statsContainer.classList.add('hidden');
+    mainContainer.classList.remove('hidden');
+});
 
 // تسجيل الخروج
 logoutBtn.onclick = () => {
@@ -326,7 +342,27 @@ backBtn.addEventListener("click", () => {
     editContainer.classList.add("hidden");
     mainContainer.classList.remove("hidden");
 });
+function displayLectureStatistics() {
+    // 1. Clear any previous statistics
+    locationStatsList.innerHTML = '';
 
+    // 2. Group and count lectures by location
+    const locationCounts = {};
+    currentLectures.forEach(lecture => {
+        const location = lecture.location.trim(); // Use trim() to clean up whitespace
+        if (location) {
+            locationCounts[location] = (locationCounts[location] || 0) + 1;
+        }
+    });
+
+    // 3. Display the counts
+    for (const location in locationCounts) {
+        const count = locationCounts[location];
+        const listItem = document.createElement('li');
+        listItem.textContent = `${location}: (${count} محاضرة)`;
+        locationStatsList.appendChild(listItem);
+    }
+}
 updateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(updateForm);
