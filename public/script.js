@@ -354,14 +354,23 @@ function displayLectureStatistics() {
             locationCounts[location] = (locationCounts[location] || 0) + 1;
         }
     });
+    // 3. Convert the counts object into an array of objects for sorting
+    const sortedLocations = Object.keys(locationCounts).map(location => {
+        return {
+            location: location,
+            count: locationCounts[location]
+        };
+    });
 
-    // 3. Display the counts
-    for (const location in locationCounts) {
-        const count = locationCounts[location];
+    // 4. Sort the array from the least to the highest count
+    sortedLocations.sort((a, b) => a.count - b.count);
+
+    // 5. Display the sorted data
+    sortedLocations.forEach(item => {
         const listItem = document.createElement('li');
-        listItem.textContent = `${location}: (${count} محاضرة)`;
+        listItem.textContent = `${item.location}: (${item.count} محاضرة)`;
         locationStatsList.appendChild(listItem);
-    }
+    });
 }
 updateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
