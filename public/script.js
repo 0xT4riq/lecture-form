@@ -382,6 +382,7 @@ function populateFilters() {
         typeFilter.appendChild(option);
     });
 }
+const locationCountDisplay = document.getElementById('location-count-display');
 function displayLectureStatistics() {
       // 1. Get the current filter values
     const selectedState = stateFilter.value;
@@ -416,6 +417,10 @@ function displayLectureStatistics() {
     });
 
     sortedLocations.sort((a, b) => a.count - b.count);
+    const numberOfLocations = sortedLocations.length;
+
+    // Update the new display div with the count
+    locationCountDisplay.innerHTML = `<p>عدد المواقع/المساجد: <strong>${numberOfLocations}</strong></p>`;
 
  if (sortedLocations.length === 0) {
         locationStatsList.innerHTML = '<li style="text-align: center; color: #7f8c8d;">لا توجد محاضرات مطابقة للمواصفات</li>';
