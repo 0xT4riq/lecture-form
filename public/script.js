@@ -46,6 +46,9 @@ const statsBtn = document.getElementById('stats-btn');
 const backFromStatsBtn = document.getElementById('back-from-stats-btn');
 const statsContainer = document.getElementById('stats-container');
 const locationStatsList = document.getElementById('location-stats-list');
+const stateFilter = document.getElementById('state-filter');
+const typeFilter = document.getElementById('type-filter');
+const applyStatsFilterBtn = document.getElementById('apply-stats-filter-btn');
 
 let currentUser = null;
 const { jsPDF } = window.jspdf;
@@ -342,14 +345,59 @@ backBtn.addEventListener("click", () => {
     editContainer.classList.add("hidden");
     mainContainer.classList.remove("hidden");
 });
+
+// Add an event listener to the new button
+applyStatsFilterBtn.addEventListener('click', () => {
+    displayLectureStatistics();
+});
+
+// Update your statsBtn click handler to also populate the state filter options
+statsBtn.addEventListener('click', () => {
+    mainContainer.classList.add('hidden');
+    statsContainer.classList.remove('hidden');
+    populateFilters(); // Call the new function to populate states
+    displayLectureStatistics(); // Display initial statistics
+});
+// New function to populate both state and type filters
+function populateFilters() {
+    // Populate State Filter
+    const uniqueStates = [...new Set(currentLectures.map(l => l.state).filter(state => state && state.trim() !== ''))];
+    stateFilter.innerHTML = '<option value="all">جميع الولايات</option>';
+    uniqueStates.sort().forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateFilter.appendChild(option);
+    });
+
+    // Populate Type Filter
+    const uniqueTypes = [...new Set(currentLectures.map(l => l.type).filter(type => type && type.trim() !== ''))];
+    typeFilter.innerHTML = '<option value="all">جميع الأنواع</option>';
+    uniqueTypes.sort().forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        typeFilter.appendChild(option);
+    });
+}s
 function displayLectureStatistics() {
+      // 1. Get the current filter values
+    const selectedState = stateFilter.value;
+    const selectedType = typeFilter.value;
+
+    // 2. Filter the lectures based on the selections
+     const filteredLectures = currentLectures.filter(lecture => {
+        const matchesState = selectedState === 'all' || lecture.state === selectedState;
+        const matchesType = selectedType === 'all' || lecture.type === selectedType;
+        return matchesState && matchesType;
+    });
     // 1. Clear any previous statistics
     locationStatsList.innerHTML = '';
 
     // 2. Group and count lectures by location
-    const locationCounts = {};
-    currentLectures.forEach(lecture => {
-        const location = lecture.location.trim(); // Use trim() to clean up whitespace
+   const locationCounts = {};
+    filteredLectures.forEach(lecture => {
+        const location = lecture.location.trim();
         if (location) {
             locationCounts[location] = (locationCounts[location] || 0) + 1;
         }
@@ -362,16 +410,21 @@ function displayLectureStatistics() {
         };
     });
 
-    // 4. Sort the array from the least to the highest count
     sortedLocations.sort((a, b) => a.count - b.count);
 
-    // 5. Display the sorted data
-    sortedLocations.forEach(item => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${item.location}: (${item.count} محاضرة)`;
-        locationStatsList.appendChild(listItem);
-    });
-}
+    if (sortedLocations.length === 0) {
+        locationStatsList.innerHTML = '<li style="text-align: center; color: #7f8c8d;">لا توجد محاضرات مطابقة للمواصفات</li>';
+    } else {
+        sortedLocations.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span class="location-name">${item.location}</span>
+                <span class="lecture-count">(${item.count} محاضرة)</span>
+            `;
+            locationStatsList.appendChild(listItem);
+        });
+    }
+}   
 updateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(updateForm);

@@ -189,9 +189,24 @@
 
 <div class="container hidden" id="stats-container">
     <h2>إحصائيات المحاضرات</h2>
-    <button id="back-from-stats-btn">رجوع</button>
+    
+    <div class="filters">
+        <label for="state-filter">الولاية:</label>
+        <select id="state-filter">
+            <option value="all">جميع الولايات</option>
+            </select>
+
+        <label for="type-filter">النوع:</label>
+        <select id="type-filter">
+            <option value="all">جميع الأنواع</option>
+        </select>
+
+        <button id="apply-stats-filter-btn">عرض الإحصائيات</button>
+    </div>
+
     <ul id="location-stats-list">
         </ul>
+    <button id="back-from-stats-btn">رجوع</button>
 </div>
 
 
