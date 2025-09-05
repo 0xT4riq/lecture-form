@@ -432,7 +432,7 @@ function displayLectureStatistics() {
             locationStatsList.appendChild(listItem);
         });
     }
-}s
+}
 updateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(updateForm);
