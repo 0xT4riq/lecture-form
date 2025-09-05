@@ -417,19 +417,22 @@ function displayLectureStatistics() {
 
     sortedLocations.sort((a, b) => a.count - b.count);
 
-    if (sortedLocations.length === 0) {
+ if (sortedLocations.length === 0) {
         locationStatsList.innerHTML = '<li style="text-align: center; color: #7f8c8d;">لا توجد محاضرات مطابقة للمواصفات</li>';
     } else {
+        // Determine the word to use in the label
+        const labelText = selectedType === 'all' ? 'لقاء' : selectedType;
+
         sortedLocations.forEach(item => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
                 <span class="location-name">${item.location}</span>
-                <span class="lecture-count">(${item.count} محاضرة)</span>
+                <span class="lecture-count">(${item.count} ${labelText})</span>
             `;
             locationStatsList.appendChild(listItem);
         });
     }
-}   
+}s
 updateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(updateForm);
