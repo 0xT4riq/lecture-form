@@ -7,8 +7,14 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { user_id, type, title, state, area, location, date, time, hijriDate } = req.body;
+  let { user_id, type, title, state, area, location, date, time, hijriDate } = req.body;
   
+    type = type.trim();
+    title = title.trim();
+    state = state.trim();
+    area = area.trim();
+    location = location.trim();
+    
   if (!user_id || !type || !title || !state || !area || !location || !date || !time || !hijriDate) {
     return res.status(400).json({ success: false, message: 'جميع الحقول مطلوبة' });
   }

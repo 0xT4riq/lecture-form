@@ -361,7 +361,8 @@ statsBtn.addEventListener('click', () => {
 // New function to populate both state and type filters
 function populateFilters() {
     // Populate State Filter
-    const uniqueStates = [...new Set(currentLectures.map(l => l.state).filter(state => state && state.trim() !== ''))];
+    // Apply .trim() to normalize the state names
+    const uniqueStates = [...new Set(currentLectures.map(l => l.state.trim()).filter(state => state !== ''))];
     stateFilter.innerHTML = '<option value="all">جميع الولايات</option>';
     uniqueStates.sort().forEach(state => {
         const option = document.createElement('option');
@@ -371,7 +372,8 @@ function populateFilters() {
     });
 
     // Populate Type Filter
-    const uniqueTypes = [...new Set(currentLectures.map(l => l.type).filter(type => type && type.trim() !== ''))];
+    // Apply .trim() to normalize the type names
+    const uniqueTypes = [...new Set(currentLectures.map(l => l.type.trim()).filter(type => type !== ''))];
     typeFilter.innerHTML = '<option value="all">جميع الأنواع</option>';
     uniqueTypes.sort().forEach(type => {
         const option = document.createElement('option');
@@ -379,24 +381,27 @@ function populateFilters() {
         option.textContent = type;
         typeFilter.appendChild(option);
     });
-}s
+}
 function displayLectureStatistics() {
       // 1. Get the current filter values
     const selectedState = stateFilter.value;
     const selectedType = typeFilter.value;
 
     // 2. Filter the lectures based on the selections
-     const filteredLectures = currentLectures.filter(lecture => {
-        const matchesState = selectedState === 'all' || lecture.state === selectedState;
-        const matchesType = selectedType === 'all' || lecture.type === selectedType;
+    const filteredLectures = currentLectures.filter(lecture => {
+        // Apply .trim() to the lecture data during filtering
+        const matchesState = selectedState === 'all' || lecture.state.trim() === selectedState;
+        const matchesType = selectedType === 'all' || lecture.type.trim() === selectedType;
         return matchesState && matchesType;
     });
+
     // 1. Clear any previous statistics
     locationStatsList.innerHTML = '';
 
     // 2. Group and count lectures by location
    const locationCounts = {};
     filteredLectures.forEach(lecture => {
+        // Apply .trim() to normalize the location names for counting
         const location = lecture.location.trim();
         if (location) {
             locationCounts[location] = (locationCounts[location] || 0) + 1;
