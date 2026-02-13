@@ -728,12 +728,31 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
       let dateDisplay = lec.date || "";
       let timeDisplay = lec.time || "";
       if (lec.type === 'إجازة') {
-        const dateTo = lec.date_to || lec.dateTo;
-        if (dateTo && dateTo !== lec.date) {
-          dateDisplay = `من ${lec.date} إلى ${dateTo}`;
+        // support multiple possible field names from API
+        const startRaw = lec.date || lec.dateFrom || lec.date_from || '';
+        const endRaw = lec.date_to || lec.dateTo || lec.date_to || '';
+
+        const formatGregorian = d => {
+          try {
+            if (!d) return '';
+            const dt = new Date(d);
+            if (isNaN(dt)) return d;
+            // Use ISO format (YYYY-MM-DD) with Latin digits
+            return dt.toISOString().slice(0,10);
+          } catch (e) { return d || ''; }
+        };
+
+        const fromFormatted = formatGregorian(startRaw);
+        const toFormatted = formatGregorian(endRaw);
+
+        if (fromFormatted && toFormatted && fromFormatted !== toFormatted) {
+          dateDisplay = `من ${fromFormatted} إلى ${toFormatted}`;
+        } else if (fromFormatted) {
+          dateDisplay = fromFormatted;
         } else {
-          dateDisplay = lec.date || "";
+          dateDisplay = lec.date || lec.dateFrom || '';
         }
+
         timeDisplay = 'طوال اليوم';
 
         // Draw compact row: الرقم | النوع | (merged التاريخ columns) | الوقت
@@ -758,7 +777,8 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
         doc.setFontSize(10);
 
         // Merged التاريخ columns (merge العنوان, الولاية, المنطقة, الموقع, التاريخ into one wide cell)
-        const mergedStart = colX[2];
+        const mergedCols = colX.slice(2, 7);
+        const mergedStart = Math.min(...mergedCols);
         const mergedWidth = colWidths.slice(2, 7).reduce((a, b) => a + b, 0);
         doc.rect(mergedStart, y, mergedWidth, rowHeight);
         fontSize = fitTextInCell(dateDisplay, mergedWidth);
