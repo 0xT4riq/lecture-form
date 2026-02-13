@@ -23,11 +23,22 @@ export default async function handler(req, res) {
     res.json({ success: true, message: 'تم الحذف بنجاح' });
   } else if (req.method === 'PUT') {
     // Logic for PUT /lectures/:id
-    const { type, title, state, area, location, date, time, hijriDate } = req.body;
+    const { type, title, state, area, location, date, time, hijriDate, dateTo, hijriDateTo } = req.body;
 
     const { data, error } = await supabase
       .from('lectures')
-      .update({ type, title, state, area, location, date, time, hijri_date: hijriDate })
+      .update({ 
+        type, 
+        title, 
+        state, 
+        area, 
+        location, 
+        date, 
+        time, 
+        hijri_date: hijriDate,
+        date_to: dateTo || null,
+        hijri_date_to: hijriDateTo || null
+      })
       .eq('id', id)
       .select();
 

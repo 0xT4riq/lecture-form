@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  let { user_id, type, title, state, area, location, date, time, hijriDate } = req.body;
+  let { user_id, type, title, state, area, location, date, time, hijriDate, dateTo, hijriDateTo } = req.body;
   
     type = type.trim();
     title = title.trim();
@@ -35,7 +35,9 @@ export default async function handler(req, res) {
         location, 
         date, 
         time, 
-        hijri_date: hijriDate 
+        hijri_date: hijriDate,
+        date_to: dateTo || null,
+        hijri_date_to: hijriDateTo || null
       }
     ])
     .select();

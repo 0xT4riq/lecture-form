@@ -154,7 +154,7 @@ loginForm.addEventListener('submit', async e => {
     });
 
     const result = await res.json();
-    if (result.success) { // Check if the operation was successful
+    if (res.ok && result.userId) { // Check if response is OK and has userId
       currentUser = result;
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
       if (result.isAdmin) {
@@ -165,7 +165,7 @@ loginForm.addEventListener('submit', async e => {
       loginForm.reset();
     } else {
       // Display the specific error message from the server
-      alert(result.message || 'خطأ في تسجيل الدخول');
+      alert(result.error || result.message || 'خطأ في تسجيل الدخول');
     }
   } catch (err) {
     console.error('خطأ في الاتصال بالسيرفر:', err);
@@ -193,10 +193,38 @@ lectureForm.addEventListener('submit', async e => {
 
   const data = Object.fromEntries(formData.entries());
   data.user_id = currentUser.userId;
-  if (data.date) {
-    const hijriDate = moment(data.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
-    data.hijriDate = hijriDate;
+  
+  // Handle vacation dates
+  if (typeSelect.value === 'إجازة') {
+    // For vacation, store both dates and compute Hijri dates
+    if (data.dateFrom) {
+      data.date = data.dateFrom; // Store the "from" date as the main date
+      const hijriDateFrom = moment(data.dateFrom, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+      data.hijriDate = hijriDateFrom;
+    }
+    if (data.dateTo) {
+      const hijriDateTo = moment(data.dateTo, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+      data.hijriDateTo = hijriDateTo;
+    }
+    // Set title and time as vacation defaults if not provided
+    if (!data.title) {
+      data.title = 'إجازة';
+    }
+    if (!data.time) {
+      data.time = 'طوال اليوم';
+    }
+  } else {
+    // Regular date handling
+    if (data.date) {
+      const hijriDate = moment(data.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+      data.hijriDate = hijriDate;
+    }
+    // Remove vacation dates if they exist
+    delete data.dateFrom;
+    delete data.dateTo;
+    delete data.hijriDateTo;
   }
+  
   if (lectureForm.dataset.editId) {
     // تعديل
     const id = lectureForm.dataset.editId;
@@ -222,6 +250,21 @@ lectureForm.addEventListener('submit', async e => {
   lectureForm.reset();
   customTypeInput.style.display = 'none'; // نخفي خانة "أخرى"
   customTimeInput.style.display = 'none'; // نخفي خانة "أخرى"
+  document.getElementById('regular-date-section').style.display = 'block'; // Show regular date section
+  document.getElementById('vacation-date-section').style.display = 'none'; // Hide vacation section
+  document.getElementById('regular-fields').style.display = 'block'; // Show regular fields
+  document.getElementById('time-field').style.display = 'block'; // Show time field
+  
+  // Re-enable all fields after reset
+  document.querySelector('input[name="title"]').disabled = false;
+  document.querySelector('input[name="state"]').disabled = false;
+  document.querySelector('input[name="area"]').disabled = false;
+  document.querySelector('input[name="location"]').disabled = false;
+  document.getElementById('gregorianDate').disabled = false;
+  document.getElementById('time-select').disabled = false;
+  document.getElementById('vacationDateFrom').disabled = true;
+  document.getElementById('vacationDateTo').disabled = true;
+  
   loadLectures();
 });
 
@@ -233,10 +276,20 @@ async function loadLectures(query = '', dateFrom = '', dateTo = '') {
   if (dateFrom) url += `&date_from=${encodeURIComponent(dateFrom)}`;
   if (dateTo) url += `&date_to=${encodeURIComponent(dateTo)}`;
 
-  const res = await fetch(url);
-  const lectures = await res.json();
-  currentLectures = lectures; // خزن النتائج
-  renderLectures(lectures);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error('Error loading lectures:', res.status, res.statusText);
+      renderLectures([]);
+      return;
+    }
+    const lectures = await res.json();
+    currentLectures = lectures; // خزن النتائج
+    renderLectures(lectures);
+  } catch (err) {
+    console.error('Error fetching lectures:', err);
+    renderLectures([]);
+  }
 }
 async function deleteLecture(id) {
   if (!confirm("هل أنت متأكد أنك تريد حذف هذه المحاضرة؟")) return;
@@ -255,19 +308,59 @@ async function deleteLecture(id) {
 function editLecture(lecture) {
   // هنا نفترض أن لديك نفس فورم الإضافة ونملأه بالبيانات القديمة
   const form = document.getElementById("lecture-form");
+  const typeSelect = document.getElementById('type-select');
+  const regularDateSection = document.getElementById('regular-date-section');
+  const vacationDateSection = document.getElementById('vacation-date-section');
+  const regularFields = document.getElementById('regular-fields');
+  const timeField = document.getElementById('time-field');
+  
   form.type.value = lecture.type;
   form.title.value = lecture.title;
   form.state.value = lecture.state;
   form.area.value = lecture.area;
   form.location.value = lecture.location;
-  form.date.value = lecture.date;
   form.time.value = lecture.time;
-  if (lecture.date) {
-    const hijriDate = moment(lecture.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
-    document.getElementById('hijriDate').value = hijriDate;
+  
+  // Handle vacation vs regular lecture
+  if (lecture.type === 'إجازة') {
+    // Show vacation date section, hide others
+    regularDateSection.style.display = 'none';
+    vacationDateSection.style.display = 'block';
+    regularFields.style.display = 'none';
+    timeField.style.display = 'none';
+    
+    // Set vacation dates - handle both camelCase and snake_case from API
+    const dateFrom = lecture.date || lecture.dateFrom;
+    const dateTo = lecture.date_to || lecture.dateTo || lecture.date;
+    
+    form.dateFrom.value = dateFrom;
+    form.dateTo.value = dateTo;
+    
+    // Set Hijri dates
+    if (dateFrom) {
+      const hijriDateFrom = moment(dateFrom, 'YYYY-MM-DD').locale('ar-sa').format('iD-iMMMM-iYYYY');
+      document.getElementById('hijriDateFrom').value = hijriDateFrom;
+    }
+    if (dateTo) {
+      const hijriDateTo = moment(dateTo, 'YYYY-MM-DD').locale('ar-sa').format('iD-iMMMM-iYYYY');
+      document.getElementById('hijriDateTo').value = hijriDateTo;
+    }
   } else {
-    document.getElementById('hijriDate').value = '';
+    // Show regular date section and other fields
+    regularDateSection.style.display = 'block';
+    vacationDateSection.style.display = 'none';
+    regularFields.style.display = 'block';
+    timeField.style.display = 'block';
+    
+    form.date.value = lecture.date;
+    if (lecture.date) {
+      const hijriDate = moment(lecture.date, 'YYYY-MM-DD').format('iYYYY-iMM-iDD');
+      document.getElementById('hijriDate').value = hijriDate;
+    } else {
+      document.getElementById('hijriDate').value = '';
+    }
   }
+  
   // نحفظ الـ ID في الفورم لتحديثه لاحقًا
   form.dataset.editId = lecture.id;
 
@@ -285,9 +378,27 @@ function renderLectures(lectures) {
   lectures.forEach(l => {
     const div = document.createElement('div');
     div.classList.add('result-item');
+    
+    // Handle both snake_case (from API) and camelCase field names
+    const dateTo = l.date_to || l.dateTo;
+    
+    // Format date display - show range for vacation
+    let dateDisplay = escapeHTML(l.date);
+    if (l.type === 'إجازة' && dateTo && dateTo !== l.date) {
+      dateDisplay = `من ${escapeHTML(l.date)} إلى ${escapeHTML(dateTo)}`;
+    } else if (l.type === 'إجازة') {
+      dateDisplay = escapeHTML(l.date);
+    }
+    
+    // Hide time for vacation
+    let timeDisplay = escapeHTML(l.time);
+    if (l.type === 'إجازة') {
+      timeDisplay = 'طوال اليوم';
+    }
+    
     div.innerHTML = `
       <b>${escapeHTML(l.title)}</b> (${escapeHTML(l.type)})<br>
-      ${escapeHTML(l.date)} - ${escapeHTML(l.time)}<br>
+      ${dateDisplay} - ${timeDisplay}<br>
       ${escapeHTML(l.state)} - ${escapeHTML(l.area)} - ${escapeHTML(l.location)}<br>
       <button class="edit-btn" data-id="${l.id}">✏ تعديل</button>
       <button class="delete-btn" data-id="${l.id}">🗑 حذف</button>
@@ -613,26 +724,81 @@ async function exportLecturesToPDF(lectures, dateFrom = '', dateTo = '') {
         drawTableHeader();
       }
 
-      const row = [
-        toArabicIndicNumbers(String(lectureNumber)),
-        lec.type || "",
-        lec.title || "",
-        lec.state || "",
-        lec.area || "",
-        lec.location || "",
-        lec.date || "",
-        lec.time || "",
-      ];
+      // Handle vacation date range
+      let dateDisplay = lec.date || "";
+      let timeDisplay = lec.time || "";
+      if (lec.type === 'إجازة') {
+        const dateTo = lec.date_to || lec.dateTo;
+        if (dateTo && dateTo !== lec.date) {
+          dateDisplay = `من ${lec.date} إلى ${dateTo}`;
+        } else {
+          dateDisplay = lec.date || "";
+        }
+        timeDisplay = 'طوال اليوم';
 
-      row.forEach((text, i) => {
-        const colStart = colX[i];
-        const colWidth = colWidths[i];
+        // Draw compact row: الرقم | النوع | (merged التاريخ columns) | الوقت
+        // الرقم
+        let text = toArabicIndicNumbers(String(lectureNumber));
+        let colStart = colX[0];
+        let colWidth = colWidths[0];
         doc.rect(colStart, y, colWidth, rowHeight);
-        const fontSize = fitTextInCell(text, colWidth);
+        let fontSize = fitTextInCell(text, colWidth);
         doc.setFontSize(fontSize);
-        doc.text(text, colStart + colWidth - 2, y + 7, { align: "right" });
+        doc.text(text, colStart + colWidth - 2, y + 7, { align: 'right' });
         doc.setFontSize(10);
-      });
+
+        // النوع
+        text = lec.type || '';
+        colStart = colX[1];
+        colWidth = colWidths[1];
+        doc.rect(colStart, y, colWidth, rowHeight);
+        fontSize = fitTextInCell(text, colWidth);
+        doc.setFontSize(fontSize);
+        doc.text(text, colStart + colWidth - 2, y + 7, { align: 'right' });
+        doc.setFontSize(10);
+
+        // Merged التاريخ columns (merge العنوان, الولاية, المنطقة, الموقع, التاريخ into one wide cell)
+        const mergedStart = colX[2];
+        const mergedWidth = colWidths.slice(2, 7).reduce((a, b) => a + b, 0);
+        doc.rect(mergedStart, y, mergedWidth, rowHeight);
+        fontSize = fitTextInCell(dateDisplay, mergedWidth);
+        doc.setFontSize(fontSize);
+        doc.text(dateDisplay, mergedStart + mergedWidth - 2, y + 7, { align: 'right' });
+        doc.setFontSize(10);
+
+        // الوقت (last column)
+        text = timeDisplay;
+        colStart = colX[7];
+        colWidth = colWidths[7];
+        doc.rect(colStart, y, colWidth, rowHeight);
+        fontSize = fitTextInCell(text, colWidth);
+        doc.setFontSize(fontSize);
+        doc.text(text, colStart + colWidth - 2, y + 7, { align: 'right' });
+        doc.setFontSize(10);
+
+      } else {
+        // Regular row - keep original full columns
+        const row = [
+          toArabicIndicNumbers(String(lectureNumber)),
+          lec.type || "",
+          lec.title || "",
+          lec.state || "",
+          lec.area || "",
+          lec.location || "",
+          dateDisplay,
+          timeDisplay,
+        ];
+
+        row.forEach((text, ci) => {
+          const colStart = colX[ci];
+          const colWidth = colWidths[ci];
+          doc.rect(colStart, y, colWidth, rowHeight);
+          const fontSize = fitTextInCell(text, colWidth);
+          doc.setFontSize(fontSize);
+          doc.text(text, colStart + colWidth - 2, y + 7, { align: "right" });
+          doc.setFontSize(10);
+        });
+      }
 
       y += rowHeight;
     };
@@ -772,6 +938,97 @@ document.addEventListener('DOMContentLoaded', () => {
         customTimeInput.style.display = 'none';
         customTimeInput.required = false;
       }
+    });
+  }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const typeSelect = document.getElementById('type-select');
+  const regularDateSection = document.getElementById('regular-date-section');
+  const vacationDateSection = document.getElementById('vacation-date-section');
+  const regularDateInput = document.getElementById('gregorianDate');
+  const vacationDateFrom = document.getElementById('vacationDateFrom');
+  const vacationDateTo = document.getElementById('vacationDateTo');
+  const regularFields = document.getElementById('regular-fields');
+  const timeField = document.getElementById('time-field');
+  const titleInput = document.querySelector('input[name="title"]');
+  const stateInput = document.querySelector('input[name="state"]');
+  const areaInput = document.querySelector('input[name="area"]');
+  const locationInput = document.querySelector('input[name="location"]');
+  const timeSelect = document.getElementById('time-select');
+
+  if (typeSelect && regularDateSection && vacationDateSection) {
+    typeSelect.addEventListener('change', function() {
+      if (this.value === 'إجازة') {
+        // Show vacation date range, hide other fields
+        regularDateSection.style.display = 'none';
+        regularDateInput.disabled = true;
+        vacationDateSection.style.display = 'block';
+        vacationDateFrom.disabled = false;
+        vacationDateTo.disabled = false;
+        regularFields.style.display = 'none';
+        timeField.style.display = 'none';
+        
+        // Disable required fields that are hidden
+        titleInput.disabled = true;
+        stateInput.disabled = true;
+        areaInput.disabled = true;
+        locationInput.disabled = true;
+        timeSelect.disabled = true;
+        
+        // Enable vacation date fields
+        vacationDateFrom.required = true;
+        vacationDateTo.required = true;
+      } else {
+        // Show regular date and other fields
+        regularDateSection.style.display = 'block';
+        regularDateInput.disabled = false;
+        vacationDateSection.style.display = 'none';
+        vacationDateFrom.disabled = true;
+        vacationDateTo.disabled = true;
+        regularFields.style.display = 'block';
+        timeField.style.display = 'block';
+        
+        // Enable regular fields
+        titleInput.disabled = false;
+        stateInput.disabled = false;
+        areaInput.disabled = false;
+        locationInput.disabled = false;
+        timeSelect.disabled = false;
+        
+        // Set required for regular fields
+        regularDateInput.required = true;
+        titleInput.required = true;
+        stateInput.required = true;
+        timeSelect.required = true;
+      }
+    });
+  }
+});
+document.addEventListener('DOMContentLoaded', function() {
+  const vacationDateFromInput = document.getElementById('vacationDateFrom');
+  const vacationDateToInput = document.getElementById('vacationDateTo');
+  const hijriDateFromInput = document.getElementById('hijriDateFrom');
+  const hijriDateToInput = document.getElementById('hijriDateTo');
+
+  function updateHijriDate(gregorianInput, hijriInput) {
+    if (gregorianInput.value) {
+      const hijriRaw = moment(gregorianInput.value, 'YYYY-MM-DD').locale('ar-sa').format('iD-iMMMM-iYYYY');
+      const hijri = hijriRaw.replace(/i/g, '');
+      hijriInput.value = hijri;
+    } else {
+      hijriInput.value = '';
+    }
+  }
+
+  if (vacationDateFromInput && hijriDateFromInput) {
+    vacationDateFromInput.addEventListener('change', function() {
+      updateHijriDate(vacationDateFromInput, hijriDateFromInput);
+    });
+  }
+
+  if (vacationDateToInput && hijriDateToInput) {
+    vacationDateToInput.addEventListener('change', function() {
+      updateHijriDate(vacationDateToInput, hijriDateToInput);
     });
   }
 });

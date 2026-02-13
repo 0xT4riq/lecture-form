@@ -99,7 +99,7 @@
     <button id="edit-btn">تحديث البيانات</button> 
     <button id="stats-btn" >إحصائيات</button>
     <h3>إضافة محاضرة جديدة</h3>
-    <form id="lecture-form">
+    <form id="lecture-form" novalidate>
       <label>النوع</label>
       <select id="type-select" name="type" required>
         <option>محاضرة</option>
@@ -108,43 +108,68 @@
         <option>خطبة</option>
         <option>حضور ورشة</option>
         <option>حضور دورة</option>
+        <option>إجازة</option>
         <option value="other">أخرى</option>
       </select>
       <input type="text" id="custom-type" placeholder="اكتب النوع هنا" style="display:none;" />
-      <label>العنوان</label>
-      <input type="text" name="title" required />
+      
+      <!-- Regular lecture fields (hidden for vacation) -->
+      <div id="regular-fields">
+        <label>العنوان</label>
+        <input type="text" name="title" required />
 
-      <label>الولاية</label>
-      <input type="text" name="state" autocomplete="on" required />
+        <label>الولاية</label>
+        <input type="text" name="state" autocomplete="on" required />
 
-      <label>المنطقة</label>
-      <input type="text" name="area" autocomplete="on" />
+        <label>المنطقة</label>
+        <input type="text" name="area" autocomplete="on" />
 
-      <label>موقع العمل</label>
-      <input type="text" name="location" autocomplete="on" />
+        <label>موقع العمل</label>
+        <input type="text" name="location" autocomplete="on" />
+      </div>
 
-      <label>التاريخ الميلادي</label>
-      <input type="date" id="gregorianDate" name="date" required />
+      <!-- Regular date fields (hidden for vacation) -->
+      <div id="regular-date-section">
+        <label>التاريخ الميلادي</label>
+        <input type="date" id="gregorianDate" name="date" required />
 
-      <label>التاريخ الهجري (يُعبأ تلقائياً)</label>
-      <input type="text" id="hijriDate" name="hijriDate" readonly />
+        <label>التاريخ الهجري (يُعبأ تلقائياً)</label>
+        <input type="text" id="hijriDate" name="hijriDate" readonly />
+      </div>
+
+      <!-- Vacation date range fields (hidden by default) -->
+      <div id="vacation-date-section" style="display:none;">
+        <label>من التاريخ (الميلادي)</label>
+        <input type="date" id="vacationDateFrom" name="dateFrom" />
+
+        <label>من التاريخ (الهجري - يُعبأ تلقائياً)</label>
+        <input type="text" id="hijriDateFrom" readonly />
+
+        <label>إلى التاريخ (الميلادي)</label>
+        <input type="date" id="vacationDateTo" name="dateTo" />
+
+        <label>إلى التاريخ (الهجري - يُعبأ تلقائياً)</label>
+        <input type="text" id="hijriDateTo" readonly />
+      </div>
 
       <!-- مكتبات التحويل -->
       <script src="/js/moment.js"></script>
       <script src="/js/moment-hijri.js"></script>
 
-
-      <label>الوقت</label>
-      <select id="time-select" name="time" required>
-        <option>بعد صلاة المغرب</option>
-        <option>بعد صلاة الفجر</option>
-        <option>صباحا</option>
-        <option>ظهرا</option>
-        <option>بعد صلاة العصر</option>
-        <option>مساءا</option>
-        <option value="other">أخرى</option>
-      </select>
-      <input type="text" id="custom-time" placeholder="اكتب التوقيت هنا" style="display:none;" />
+      <!-- Time field (hidden for vacation) -->
+      <div id="time-field">
+        <label>الوقت</label>
+        <select id="time-select" name="time" required>
+          <option>بعد صلاة المغرب</option>
+          <option>بعد صلاة الفجر</option>
+          <option>صباحا</option>
+          <option>ظهرا</option>
+          <option>بعد صلاة العصر</option>
+          <option>مساءا</option>
+          <option value="other">أخرى</option>
+        </select>
+        <input type="text" id="custom-time" placeholder="اكتب التوقيت هنا" style="display:none;" />
+      </div>
 
 
       <button type="submit">حفظ</button>
